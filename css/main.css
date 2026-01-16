@@ -15,8 +15,9 @@ body{
     max-width: 100%;
     margin: 0 auto;
 }
+
 @media (max-width: 600px) {
     .ascii {
-        font-size: 8px;
+        font-size: clamp(1px, 0.5vw, 12px);
     }
 }
