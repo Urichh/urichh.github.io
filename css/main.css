@@ -17,6 +17,9 @@ html {
 
     background-size: calc(1.732 * var(--s)) var(--s);
     background-color: #000;
+    
+    /* for the footer */
+    height: auto;
 }
 
 body {
@@ -25,10 +28,44 @@ body {
     font-family: Arial, sans-serif;
 
     position: relative;
+
+    /* for the footer */
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
 main {
     padding: 0 20rem;
+
+    /* for the footer */
+    flex: 1;
+}
+
+a {
+    color: lightskyblue;
+}
+
+.fingerprint {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    font-size: 0.75rem;
+
+    background: #1e1e1e;
+    color: #cfcfcf;
+
+    padding: 0.35rem;
+    border-radius: 6px;
+}
+
+.footerfr{
+    background-color: black;
+    line-height: 1.5rem;
+    font-size: 0.75rem;
+    color:lightslategrey;
+
+    display: flex;
+    justify-content: center;
+    width: 100%;
 }
 
 .ascii {
@@ -69,6 +106,37 @@ main {
     width: 100%;
 }
 
+.box {
+    border: 2px solid #555;
+    border-radius: 8px;
+    display: inline-block;
+    padding: 0rem 1rem 0rem 1rem;
+}
+
+legend {
+    padding: 0 0.5rem;
+    font-weight: 600;
+}
+
+.site-footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.johnvertisement {
+    /* straight from https://john.citrons.xyz/ */
+    margin-left: auto;
+    display: block;
+    margin-right: auto;
+    max-width: 732px;
+    width: 100%;
+    height: 94px;
+    border: none;
+}
+
+/* MOBILE */
+/* ----- */
 @media (max-width: 600px) {
     html {
         --s: 60px; /* smaller boxes in background for mobile */
@@ -80,5 +148,8 @@ main {
     main {
         padding: 0 5vh;
         margin-left: 0;
+    }
+    .johnvertisement {
+        height: 50px;
     }
 }
