@@ -69,7 +69,7 @@ main {
         background-size: calc(1.732 * var(--s)) var(--s);
     }
     .ascii {
-        font-size: clamp(1px, 0.5vw, 12px);
+        font-size: clamp(1px, 0.7vw, 12px);
     }
     main {
         padding: 0 5vh;
