@@ -1,7 +1,34 @@
-body{
+html {
+    /* background from https://css-pattern.com/cube-columns/ */
+    position: relative;
+    --s: 113px;
+    --c1: #000000;
+    --c2: #0d0d0d;
+    --c3: #151515;
+
+    --_g: var(--c3) 0 120deg,#0000 0;
+
+    background:
+        conic-gradient(from -60deg at 50% calc(100%/3),var(--_g)),
+        conic-gradient(from 120deg at 50% calc(200%/3),var(--_g)),
+        conic-gradient(from  60deg at calc(200%/3),var(--c3) 60deg,var(--c2) 0 120deg,#0000 0),
+        conic-gradient(from 180deg at calc(100%/3),var(--c1) 60deg,var(--_g)),
+        linear-gradient(90deg,var(--c1) calc(100%/6),var(--c2) 0 50%, var(--c1) 0 calc(500%/6),var(--c2) 0);
+
+    background-size: calc(1.732 * var(--s)) var(--s);
+    background-color: #000;
+}
+
+body {
     margin: 0;
-    background: #000;
     color: #fff;
+    font-family: Arial, sans-serif;
+
+    position: relative;
+}
+
+main {
+    padding: 0 20rem;
 }
 
 .ascii {
@@ -14,9 +41,38 @@ body{
     width: max-content;
     max-width: 100%;
     margin: 0 auto;
+
+    position: relative;
 }
+
+.ascii-wrapper {
+    position: relative;
+    z-index: 1;
+}
+
+.ascii-wrapper::before {
+    /*start gradient mid ascii art */
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+
+    background: linear-gradient(to bottom, #000 0%, #000000c4 50%, #0000007c 75%, #00000000 100%, transparent 100%);
+
+    width: 100vw;
+}
+
 @media (max-width: 600px) {
+    html {
+        --s: 60px; /* smaller boxes in background for mobile */
+        background-size: calc(1.732 * var(--s)) var(--s);
+    }
     .ascii {
-        font-size: 8px;
+        font-size: clamp(1px, 0.5vw, 12px);
+    }
+    main {
+        padding: 0 5vh;
+        margin-left: 0;
     }
 }
