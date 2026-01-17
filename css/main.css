@@ -135,6 +135,26 @@ legend {
     border: none;
 }
 
+.color-shift {
+    font-weight: bold;
+
+    background: linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet, red);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: smoothShift 5s linear infinite;
+    display: inline-block;
+}
+
+@keyframes smoothShift {
+    0% {
+      background-position: 0% center;
+    }
+    100% {
+      background-position: 200% center;
+    }
+}
+
 /* MOBILE */
 /* ----- */
 @media (max-width: 600px) {
