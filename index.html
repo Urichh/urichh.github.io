@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>urbansite</title>
+    <title>urbansite.si</title>
     <link rel="stylesheet" href="css/main.css">
 </head>
 <body>
@@ -36,18 +36,44 @@
     </section>
 </header>
 <main>
-    <div>
+    <div class="main-navigation-bar">
+        <a href="/">Home</a>
+        <a href="https://blog.urbansite.si">Blog</a>
+        <a href="https://writeups.urbansite.si">Writeups</a>
+        <a href="https://photos.urbansite.si">Photos</a>
+    </div>
+    <div style="margin: 3rem;">
         <p class="center">Hallo</p>
         <p class="center">I'm&nbsp;<span class="color-shift">Urban</span></p>
         <p class="center">I do fun stuff sometimes :)</p>
     </div>
     <fieldset class="box">
         <legend>$ whoami</legend>
+        <p>Currently cca. <span id="age" class="fingerprint" style="font-size:1rem;"></span> years old</p>
         <p>PGP fingerprint: <span class="fingerprint">47FC D9D9 FCDF C1BA 3E6F  44CE F330 A04E E9D9 63FC</span> <a href="pgp-publickey.txt">(key)</a></p>
         <p>UNI: <a href="https://fri.uni-lj.si/en" target="_blank">fri.uni-lj.si</a></p>
         <p>QRZ: <a href="https://www.qrz.com/db/S53WD" target="_blank">S53WD</a></p>
-        <p>email (temporarily unused): urban@urbansite.si</p>
+        <p>Discrod: <a href="https://discordapp.com/users/319851380468744214">link</a></p>
+        <p>GitHub: <a href="https://github.com/Urichh"> link</a></p>
+        <p>email (currently unused): <a href=mailto:urban@urbansite.si">urban [at] urbansite.si</a></p>
     </fieldset>
+
+    <div>
+        <p>More about me:</p>
+        <ul>
+            <li>debian enjoyer</li>
+            <li>self-hosted™ (to some degree)</li>
+            <li>proud owner of several unused domains</li>
+            <li>i'll think of more later</li>
+        </ul>
+    </div>
+    <div>
+        <p>Enough about me, let's talk about you for a second:</p>
+        <ul>
+            <li>you've visited this website <span id="visitCounterField"></span> times already</li>
+            <li>you've wasted <span id="timePresentField"></span> seconds on here.</li>
+        </ul>
+    </div>
 </main>
 <footer class="site-footer">
     <!-- johnvertisement xd-->
