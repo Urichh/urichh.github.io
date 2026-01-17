@@ -24,3 +24,11 @@ localStorage.setItem("visitCount", visits);
 
 //display visit number
 document.getElementById("visitCounterField").textContent = visits;
+
+//get time spent on site
+const start = Date.now();
+const timePresentField = document.getElementById("timePresentField");
+setInterval(() => {
+    const seconds = Math.round((Date.now() - start) / 1000);
+    timePresentField.textContent = seconds;
+}, 1000);
