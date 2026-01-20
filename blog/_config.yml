@@ -3,6 +3,8 @@ author:
   name: "Urban"
   email: "urban@urbansite.si"
 
+repository: "urichh/urichh.github.io"
+
 remote_theme: mmistakes/minimal-mistakes@4.27.3
 
 minimal_mistakes_skin: "dark"
