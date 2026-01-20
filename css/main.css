@@ -74,7 +74,8 @@ a {
     line-height: 1.1;
     white-space: pre;
     overflow-x: auto;
-    padding: 1rem;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
     width: max-content;
     max-width: 100%;
     margin: 0 auto;
