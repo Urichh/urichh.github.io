@@ -1,0 +1,3 @@
+#bcs github actions only checks root dir for jekyll
+exclude:
+  - blog/
