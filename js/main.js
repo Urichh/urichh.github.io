@@ -32,3 +32,18 @@ setInterval(() => {
     const seconds = Math.round((Date.now() - start) / 1000);
     timePresentField.textContent = seconds;
 }, 1000);
+
+//pattern size slider
+const patternSlider = document.getElementById("patternSlider");
+const htmlElement = document.documentElement;
+
+//no slider on mobile
+if (patternSlider) {
+    //reset slider to default on page load
+    patternSlider.value = 113;
+
+    patternSlider.addEventListener("input", (e) => {
+        const value = e.target.value;
+        htmlElement.style.setProperty("--s", value + "px");
+    });
+}
