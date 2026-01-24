@@ -25,13 +25,26 @@ localStorage.setItem("visitCount", visits);
 //display visit number
 document.getElementById("visitCounterField").textContent = visits;
 
-//get time spent on site
+//get time spent on site (persistent across sessions)
 const start = Date.now();
 const timePresentField = document.getElementById("timePresentField");
+
+//load previous time from localStorage (sumat)
+let cumulativeTime = parseInt(localStorage.getItem("cumulativeTime") || "0", 10);
+
+//update each second
 setInterval(() => {
-    const seconds = Math.round((Date.now() - start) / 1000);
-    timePresentField.textContent = seconds;
+    const currentSessionTime = Math.round((Date.now() - start) / 1000);
+    const totalSeconds = cumulativeTime + currentSessionTime;
+    timePresentField.textContent = totalSeconds;
 }, 1000);
+
+//save summed time on unload
+window.addEventListener("beforeunload", () => {
+    const currentSessionTime = Math.round((Date.now() - start) / 1000);
+    const totalSeconds = cumulativeTime + currentSessionTime;
+    localStorage.setItem("cumulativeTime", totalSeconds.toString());
+});
 
 //pattern size slider
 const patternSlider = document.getElementById("patternSlider");
