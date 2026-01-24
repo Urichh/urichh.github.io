@@ -1,7 +1,17 @@
-title: "general blog @ urbansite.si"
+title: "blog @ urbansite.si"
 author:
   name: "Urban"
+  avatar: "/assets/images/avatar_dark_bg.png"
+  bio: "I do fun stuff sometimes :)"
+  location: "Slovenia"
   email: "urban@urbansite.si"
+  links:
+    - label: "GitHub"
+      icon: "fab fa-fw fa-github"
+      url: "https://github.com/Urichh"
+    - label: "Website"
+      icon: "fas fa-fw fa-link"
+      url: "https://www.urbansite.si"
 
 repository: "urichh/urichh.github.io"
 
@@ -11,6 +21,20 @@ minimal_mistakes_skin: "dark"
 
 url: "https://www.urbansite.si"
 baseurl: "/blog"
+
+#sidebar
+defaults:
+  - scope:
+      path: ""
+      type: posts
+    values:
+      layout: single
+      author_profile: true
+      read_time: true
+      comments: false
+      share: false
+      related: false
+      show_date: true
 
 plugins:
   - jekyll-paginate

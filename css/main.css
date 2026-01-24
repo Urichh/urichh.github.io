@@ -66,6 +66,14 @@ a {
     display: flex;
     justify-content: center;
     width: 100%;
+    position: relative;
+}
+
+.footerfr a {
+    position: absolute;
+    left: 1vh;
+    top: 50%;
+    transform: translateY(-50%);
 }
 
 .ascii {
@@ -142,6 +150,7 @@ legend {
     background: linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet, red);
     background-size: 200% auto;
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
     animation: smoothShift 5s linear infinite;
     display: inline-block;
