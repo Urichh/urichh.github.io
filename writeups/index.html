@@ -1,11 +1,17 @@
-<!DOCTYPE html>
-<html lang="si">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>writeups</title>
-</head>
-<body>
-    <p>test writeups</p>
-</body>
-</html>
+---
+layout: home
+title: "Writeups"
+subtitle: "CTF stuff"
+---
+
+<p>I post the occasional CTF writeup here and there.</p>
+
+<h2>Recent posts</h2>
+<ul>
+	{%- for post in site.posts -%}
+	<li>
+		<a href="{{ post.url | relative_url }}">{{ post.title }}</a>
+		<span style="color: #888">— {{ post.date | date: "%B %d, %Y" }}</span>
+	</li>
+	{%- endfor -%}
+</ul>
