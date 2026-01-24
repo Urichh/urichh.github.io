@@ -34,21 +34,20 @@ jobs:
         env:
           JEKYLL_ENV: production
 
-      # 
-      # - name: Build writeups
-      #   run: |
-      #     cd writeups
-      #     bundle install
-      #     bundle exec jekyll build
-      #   env:
-      #     JEKYLL_ENV: production
+      - name: Build writeups
+        run: |
+          cd writeups
+          bundle install
+          bundle exec jekyll build
+        env:
+          JEKYLL_ENV: production
 
       - name: Prepare deployment
         run: |
           mkdir -p _site
-          cp -r index.html css js photos writeups assets* CNAME robots.txt pgp-publickey.txt README.md _site/ 2>/dev/null || true
+          cp -r index.html css js photos assets* CNAME robots.txt pgp-publickey.txt README.md _site/ 2>/dev/null || true
           cp -r blog/_site _site/blog
-          # When ready: cp -r writeups/_site _site/writeups
+          cp -r writeups/_site _site/writeups
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
