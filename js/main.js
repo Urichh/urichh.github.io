@@ -32,11 +32,28 @@ const timePresentField = document.getElementById("timePresentField");
 //load previous time from localStorage (sumat)
 let cumulativeTime = parseInt(localStorage.getItem("cumulativeTime") || "0", 10);
 
+//format time as hours:minutes:seconds or minutes:seconds
+function formatTime(totalSeconds) {
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    
+    if (hours > 0) {
+        return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+    else if (minutes > 0) {
+        return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    }
+    else {
+        return `${seconds}`;
+    }
+}
+
 //update each second
 setInterval(() => {
     const currentSessionTime = Math.round((Date.now() - start) / 1000);
     const totalSeconds = cumulativeTime + currentSessionTime;
-    timePresentField.textContent = totalSeconds;
+    timePresentField.textContent = formatTime(totalSeconds);
 }, 1000);
 
 //save summed time on unload
