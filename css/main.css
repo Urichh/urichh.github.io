@@ -150,6 +150,7 @@ legend {
     background: linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet, red);
     background-size: 200% auto;
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
     animation: smoothShift 5s linear infinite;
     display: inline-block;
