@@ -98,7 +98,7 @@ a {
 
     background: linear-gradient(to bottom, #000 0%, #000000c4 50%, #0000007c 75%, #00000000 100%, transparent 100%);
 
-    width: 100vw;
+    width: 100%;
 }
 
 .center {
