@@ -1,3 +1,28 @@
 ---
 layout: home
 ---
+
+<script>
+//add navigation links to the main site navigation bar. Looks retarded, hope it holds up.
+document.addEventListener('DOMContentLoaded', () => {
+    const nav = document.querySelector('#site-nav .visible-links');
+    if (!nav) return;
+
+    const links = [
+        { text: 'Home', href: 'https://www.urbansite.si' },
+        { text: 'Blog', href: 'https://www.urbansite.si/blog' },
+        { text: 'Writeups', href: 'https://www.urbansite.si/writeups' },
+        { text: 'Photos', href: 'https://www.urbansite.si/photos' },
+    ];
+
+    links.forEach(link => {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.href = link.href;
+        a.textContent = link.text;
+        li.appendChild(a);
+        nav.appendChild(li);
+    });
+});
+//tu mi deluje ris sasavu sam jebiga
+</script>
