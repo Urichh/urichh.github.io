@@ -79,12 +79,27 @@
 <body>
     <main class="page-content" aria-label="Content">
       <div class="w">
-        <header>
+        <style>
+  @media (max-width: 768px) {
+    .main-navigation-bar {
+      gap: 1.5rem !important;
+    }
+  }
+  @media (min-width: 769px) {
+    .main-navigation-bar {
+      gap: 6rem !important;
+    }
+  }
+</style>
 
+<nav class="main-navigation-bar" style="text-align: center; padding: 1.5rem; border-bottom: 1px solid #444; margin-bottom: 2rem; display: flex; justify-content: center; flex-wrap: nowrap;">
+    <a href="https://www.urbansite.si" style="white-space: nowrap;">Home</a>
+    <a href="https://www.urbansite.si/blog" style="white-space: nowrap;">Blog</a>
+    <a href="https://www.urbansite.si/writeups" style="white-space: nowrap;">Writeups</a>
+    <a href="https://www.urbansite.si/photos" style="white-space: nowrap;">Photos</a>
+</nav>
 
-  <h1>Writeups @ urbansite.si</h1>
-  
-</header>
+<h1>Writeups</h1>
 
 <p>I post the occasional CTF writeup here and there.</p>
 
@@ -93,17 +108,6 @@
 		<a href="/writeups/init-writeup/">init writeup</a>
 		<span style="color: #888">— January 24, 2026</span>
 	</li></ul>
-
-
-
-
-
-
-
-
-
-
-
 
         
           <button title="Toggle Theme" class="theme-toggle">

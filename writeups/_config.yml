@@ -1,7 +1,7 @@
 title: "Writeups @ urbansite.si"
 description: "CTF writeups"
 url: "https://www.urbansite.si"
-baseurl: "/writeups"
+baseurl: "/writeups/"
 
 remote_theme: abhinavs/moonwalk
 theme_config:
