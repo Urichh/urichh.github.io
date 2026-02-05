@@ -9,6 +9,10 @@ theme_config:
   appearance_toggle: true
   date_format: "%B %d, %Y"
 
+#for code blocks
+custom_css:
+  - /assets/css/terminal.css
+
 permalink: /:title/
 paginate: 5
 paginate_path: "/page:num"
