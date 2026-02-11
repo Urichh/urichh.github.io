@@ -13,7 +13,7 @@ TL;DR: The challenge contains a simple format string vulnerability, which we can
 
 ## Intro
 
-The challenge provides provides us with just the binary and a Dockerfile. First, let's do some basic reconnaissance using `file` and `checksec`:
+The challenge provides us with just the binary and a Dockerfile. First, let's do some basic reconnaissance using `file` and `checksec`:
 
 ```bash
 (pyvenv) urichh@toaster:~/Desktop/challs-dropbox/justCTF2025-pwn-shellcode_printer$ file vuln
@@ -109,13 +109,13 @@ LAB_00101489:
 }
 ```
 
-One line immediatly stands out - `fprintf(__stream,input_buffer);`, as it doesn't contain a format specifier. This leads to a format string vulnerability, as we can input things like `%x`, `%p`, `%n` etc. and fprintf will evaluate them.
+One line immedietly stands out - `fprintf(__stream,input_buffer);`, as it doesn't contain a format specifier. This leads to a format string vulnerability, as we can input things like `%x`, `%p`, `%n` etc. and fprintf will evaluate them.
 
 At first I ran the binary and tried to leak some values from the stack using `%x`, `$2%x`, `$2%x` and such, but it produced no output what so ever. After a quick return to the decompiled pseudocode, I quickly noticed the problem: `__stream = fopen("/dev/null","w");`. The stream was writing output into `/dev/null` instead of my terminal, so I decided to change that :)
 
 ## Patching the binary to capture output
 
-As stated above, I didn't like the fact that I didn't see any output from the binary, so I decided to patch it. This is in no way needed to solve the challenge, but it just makes it easier. Since the string `/dev/tty` (which we want as to print to console) is shorter then `/dev/null`, we can simple carve the bytes and add an extra null byte at the end, so as to not change the offsets and pointers, which would have been a huge pain, and usually isn't worth it:
+As stated above, I didn't like the fact that I didn't see any output from the binary, so I decided to patch it. This is in no way needed to solve the challenge, but it just makes it easier. Since the string `/dev/tty` (which we want as to print to console) is shorter than `/dev/null`, we can simply carve the bytes and add an extra null byte at the end, so as to not change the offsets and pointers, which would have been a huge pain, and usually isn't worth it:
 
 ```bash
 sed -i 's|/dev/null|/dev/tty\x00|g' vuln_patched
@@ -147,7 +147,7 @@ page_size = getpagesize();
 mmaped_memory = mmap((void *)0x0, (long)page_size, 7, 0x22, -1, 0);
 ```
 
- - 0x0: map at address 0 (probbably ignored due to ASLR?)
+ - 0x0: map at address 0 (probabbly ignored due to ASLR?)
  - page_size: Size of allocation
  - 7: PROT_READ (1) \| PROT_WRITE (2) \| PROT_EXEC (4) = Read+Write+Execute (RWX!)
  - 0x22: MAP_PRIVATE (2) \| MAP_ANONYMOUS (0x20) (not important - I think)
@@ -160,7 +160,7 @@ What's important here, is that this gives us an EXECUTABLE memory page. This wil
 before the main loop, the binary seeds the memory page with a single `ret` (return) - [0xc3](https://shell-storm.org/x86doc/), and moves the start of the page back by 2 bytes. This will get overwritten with out input later.
 
 Then we enter the main loop, which:
- - clars (zeroes) the input buffer - `local_28[n] = '\0';`
+ - clears (zeroes) the input buffer - `local_28[n] = '\0';`
  - reads up to 0x10 (15 + null byte) characters of input and stores into `local_28`
  - checks for EOF
  - removes newline (\n)
@@ -185,7 +185,7 @@ In the end, the binary just cleans up some variables and compares stack canary v
 
 Our goal is to write some shellcode, which will spawn a shell (/bin/sh), into the RWX memory page (which is then executed) using the format string vulnerability. To achieve this, we can use the `%n` format specifier. `%n` simply writes the number of bytes printed so far to the address pointed to by an argument (we'll get to that later). We can use this in addition to a `%c` specifier, which prints any desired number of characters. When we combine them, something like `%195c%10$n` will write the number 195 (0xc3 in hex - ret) to the address held as the 10th argument (10th value on the stack at that time).
 
-We can also see that even though we can supply 16 bytes of input, the function pointer only moves forward by two. This means that even though we *can* write our shellcode in 16 byte chunks, it would be finnicky to align the function pointer. Instead, I thought it would be best to just split the payload into 2 byte chunks. Since `%n` will write 4 bytes, we instead need to use `%hn` (called a short/half int), to get our desired 2 byte chunks.
+We can also see that even though we can supply 16 bytes of input, the function pointer only moves forward by two. This means that even though we *can* write our shellcode in 16 byte chunks, it would be finicky to align the function pointer. Instead, I thought it would be best to just split the payload into 2 byte chunks. Since `%n` will write 4 bytes, we instead need to use `%hn` (called a short/half int), to get our desired 2 byte chunks.
 
 So taking this into account, here are the steps we need to take:
  - find the offset on the stack to the pointer to our RWX memory page
@@ -195,7 +195,7 @@ So taking this into account, here are the steps we need to take:
 
 ### Finding correct offset
 
-We could go about finding the correct offset in a debugger, but imo it's easier to just brute force this, since the offset is usally fairly small. If we just test out some offsets, this is what we get:
+We could go about finding the correct offset in a debugger, but imo it's easier to just brute force this, since the offset is usually fairly small. If we just test out some offsets, this is what we get:
 
 ```bash
 urichh@toaster:~/Desktop/challs-dropbox/justCTF2025-pwn-shellcode_printer$ ./vuln_patched
@@ -225,9 +225,9 @@ Enter a format string:
 urichh@toaster:~/Desktop/challs-dropbox/justCTF2025-pwn-shellcode_printer$ 
 ```
 
-As we can see, offset 1 and 6 give lib-c-pointer-looking addresses, while the rest are just garbage. Trying offset 1 with a single return instructions (`%195c%1$hn`) gives us a SEGFAULT, so thats probbably not the pointer to our RWX memory page. Offset 6, however, successfuly executes, so we can assume it's the correct pointer. Note that due to [ASLR](https://en.wikipedia.org/wiki/Address_space_layout_randomization), the values are randomised for each run.
+As we can see, offset 1 and 6 give lib-c-pointer-looking addresses, while the rest are just garbage. Trying offset 1 with a single return instructions (`%195c%1$hn`) gives us a SEGFAULT, so thats probabbly not the pointer to our RWX memory page. Offset 6, however, successfuly executes, so we can assume it's the correct pointer. Note that due to [ASLR](https://en.wikipedia.org/wiki/Address_space_layout_randomization), the values are randomised for each run.
 
-This also tracks with the standard [x86 calling convention for amd64](https://en.wikipedia.org/wiki/X86_calling_conventions#System_V_AMD64_ABI), which states that the first 6 values on the stack are from registers, so in our case `0x7ffd932e3a30` was probbably RDI, which makes sense.
+This also tracks with the standard [x86 calling convention for amd64](https://en.wikipedia.org/wiki/X86_calling_conventions#System_V_AMD64_ABI), which states that the first 6 values on the stack are from registers, so in our case `0x7ffd932e3a30` was probabbly RDI, which makes sense.
 
 ![x86 calling convention for amd64]({{ site.baseurl }}/assets/images/amd64_calling_convention.png)
 
@@ -324,4 +324,4 @@ just{fake_flag}
 ```
 
 ## Conclusion
-In conclusion, this was a pretty simple format string vulnerability challange, and this writeup could have been a lot shorter, I just wanted to take my time with it and go into more detail :)
+In conclusion, this was a pretty simple format string vulnerability challenge, and this writeup could have been a lot shorter, I just wanted to take my time with it and go into more detail :)
