@@ -42,3 +42,5 @@ All these parameters then had to be written to a json file with a specific struc
 ## The original plan
 
 All of this led me to the idea for the website. If I could simply re-create the in-game map generation menu settings and reverse engineer the logic which creates the settings json file, I could then automate the entire process of generating image previews from a simple website. This sounded like a cool project (and I was looking for something new to replace my factiro addiction), so I decided to also over-complicate this project in the name of scalability :)
+
+test
