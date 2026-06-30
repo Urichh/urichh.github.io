@@ -41,6 +41,38 @@ All these parameters then had to be written to a json file with a specific struc
 
 ## The original plan
 
-All of this led me to the idea for the website. If I could simply re-create the in-game map generation menu settings and reverse engineer the logic which creates the settings json file, I could then automate the entire process of generating image previews from a simple website. This sounded like a cool project (and I was looking for something new to replace my factiro addiction), so I decided to also over-complicate this project in the name of scalability :)
+All of this led me to the idea for the website. If I could simply re-create the in-game map generation settings menu and reverse engineer the logic which creates the settings json file, I could then automate the entire process of generating image previews from a simple website. This sounded like a cool project (and I was looking for something new to replace my factorio addiction), so I decided to also over-complicate this project in the name of scalability :)
 
-test
+The idea was simple:
+ - users inputs map generation parameters,
+ - website constructs a settings json object,
+ - website sends the json object and other files to a backend worker server,
+ - worker runs the factorio binary with specified command line arguments and generates a png,
+ - worker sends png back to frontend website, which then presents it back to the user.
+
+Of course, it would turn out more complex than this, partially due to unforseen challanges but also my own tendency to overcomplicate, but this was the general idea getting into it.
+
+## Workflow & infrastructure design
+
+Once I had the general user flow defined, it was time to actually think about the design for this project. From the top of my head, I had a couple of potential problems/challanges lined up, which I wanted to address. The challenges were:
+ - how will multiple users be able to generate previews simultaneously?
+ - how should I implement caching for duplicated requests?
+ - how can I properly keep track of generation jobs
+ - etc.
+
+# Parallel generation for multiple users
+
+This was the biggest design challange that consequently also dictated much of the design for the rest of the project. If I wanted multiple users to be able to generate previews simultaneously, I somehow had to provide multiple independent workers, each with their own factorio binary, which could run generation jobs, and these workers should also be able to work independetnly of each other without getting in each others way.
+
+The way I decided to achieve this was with dedicated docker workers, all of which would recieve jobs from a central jobs pool/queue. I also wanted to keep track of these jobs, so that multiple workers wouldn't start working on the same job.
+
+In order to achieve this, I decided on a simple FIFO queue, which was to be implemented using [redis](https://redis.io/) as an in-memory data structure. The redis queue came in handy because of it's built-in ability to create consumer groups, where workers could ACK a claimed job from the queue, so that other workers wouldn't claim an already claimed job. This probbably could have also been achieved with a simple SQL database, but I just wanted to see what the fuss is all about with redis :)
+
+# Database & storage overview
+
+While redis would only hold the basic necessary information (mainly the jobID), a central postgreSQL database would be the central source of truth, which would hold the actual status of jobs (enqueued/running/finished/etc.), the generation parameters, seed etc.
+
+And if I wanted to do the whole caching thing, I needed some way to actually store the generated PNGs permanently. I could have just used a regular file system, or even an SQL database, but what would have been too convenient, for me, and I wanter to try out this "blob"/object storage thingy, thus I decided to use [garage](https://garagehq.deuxfleurs.fr/), partially also because it is S3 compactible, and if I ever wanted to lift%&shift my bucket into AWS or some equivalent storage, that would be pretty trivial.
+
+# simplified job lifecycle
+
