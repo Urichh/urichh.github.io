@@ -118,3 +118,41 @@ Before diving into specific, I just want to give a brief high-level overview of 
     <img src="{{ site.baseurl }}/assets/images/high-level_overview.png" alt="High-level overview" title="High-level overview" style="display:block;margin:0 auto;height:35em;width:15em"/>
     <figcaption style="display:block;text-align:center;clear:both;width:25em;margin:0.5em auto 0">High-level overview</figcaption>
 </figure>
+
+## Brief overview of components
+
+### Frontend
+The frontend was created using netx.js and typescript etc. It just accepts user input and displays the generated image. I do have to admit that I find frontend development quite boring, so 90% of frontend code was LLM generated :)
+
+### API plane
+
+The API plane is the projects backend orchestration layer. It sits between the React frontend and the worker/storage stack, turning UI form state into Factorio map-generation JSON object(s), hashing it into a dedupe key, and then using that to create or reuse jobs in Postgres and enqueue new work on Redis. From there, the UI polls a job-status endpoint that returns the job row plus artifact links, while a separate artifact proxy streams the generated PNG/JSON back from the storage.
+
+### SQL database(s)
+
+The SQL side of this project is pretty minimal, as it uses a single Postgres database with two tables. The first one (titled "jobs") stores preview requests, the dedupe key, seed, full map-generation JSON, job status etc. The second table (called "artifacts") is a child table that points from a job to generated files in blob storage, so each job can point to its preview PNG and JSON (more details later). The API endpoints mainly write to jobs when a request is submitted, reads jobs plus artifacts when the UI polls for status, and relies on the dedupe key to avoid creating duplicate work for identical inputs.
+
+### Redis queue
+
+The Redis queue is the projects job queue. The web app enqueues each new preview request into a Redis stream and then the workers join that stream through a consumer group to claim jobs one at a time. The worker then looks up the job in Postgres to retrieve status and other parameters, runs Factorio plus the analyzer, stores artifacts, updates job status, and finally XACKs the stream message so it won’t be processed again. if a message is malformed or the job row is missing, it still gets acknowledged and skipped.
+
+### Docker worker pool
+
+The Docker worker pool is a deliberately simple horizontal layer. One identical container image built from a Dockerfile is launched repeatedly (compose scaling) by docker-compose.worker.yml, and each instance runs the same Python worker against the same Redis stream, Postgres database, and Garage bucket. The compose file keeps the container stateless by injecting all runtime config from .env and mounting only the analyzer, Factorio files, and a shared data volume, so scaling is basically just increasing the number of worker replicas.
+
+### Preview generator
+
+Not much to be said here. Mostly already described previously. The factorio binary is just ran with the supplied parameters taken from the db.
+
+### Image analyzer
+
+Same here.
+
+### Blob storage
+
+Finally, the blob storage layer is implemented using [Garage](https://garagehq.deuxfleurs.fr/), which is the projects S3-compatible object store for generated outputs like the preview PNG and analyzer JSONs. I really had no reason to use object storage instead of a classic file system or yet another SQL db, but I really wanted to test this whole s3/object storage thing out, so thats what I did :). The workers upload finished artifacts into the factorio-previews bucket, and then write the resulting object_key back into Postgres so the app can find them later without storing the files in the database. When the UI needs an artifact, it goes through the apps /api/artifacts/... proxy, which fetches the object from Garage and serves it back on the same origin.
+
+# Job lifecycle
+
+For this chapter, I think it would be best if I describe the job lifecycle so that I can present how all these previously described components fit into the whole project.
+
