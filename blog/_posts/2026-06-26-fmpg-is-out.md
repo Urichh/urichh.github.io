@@ -156,3 +156,74 @@ Finally, the blob storage layer is implemented using [Garage](https://garagehq.d
 
 For this chapter, I think it would be best if I describe the job lifecycle so that I can present how all these previously described components fit into the whole project.
 
+### 1. Client submits seed and settings to the `/map-settings` API endpoint.
+Client just reads data from the generation parameters pannel and others, and sends the data over to the API endpoint. Pretty self-explanatory.
+
+### 2. The API endpoint computes a deterministic cache key
+This key, called a "`dedupe_key`", is used to check whether this is a duplicate request so that it may skip generation steps and immediatly return the result to the client. The dedupe key is constructed as following:
+
+```
+function buildDedupeKey(settings: unknown, seed: number, width: number, height: number) {
+  const canonicalSettings = canonicalize(settings);
+  const payload = {
+    analyzerVersion: ANALYZER_VERSION,
+    canonicalSettings,
+    factorioVersion: FACTORIO_VERSION,
+    previewHeight: height,
+    previewWidth: width,
+    seed,
+  };
+  //needed for dedupe_key to detect identcal requests
+  return createHash("sha256").update(canonicalStringify(payload)).digest("hex");
+}
+```
+
+Here, values `analyzerVersion` and `factorioVersion` are hardcoded values indicating my analyzer (python script) and game version. thus, if I make an adjustment to the analyzer, seemingly identitcal requests will be re-processed.
+
+`canonicalSettings` is stringified canoicalized JSON structure of the data inputed in the Generation parameters panel. The structure of the JSON object should be consistent due to the logic which constructs the JSON object from the generation parameters pannel, but canonicalising it serves to future-proof the process as well as harden it overall.
+
+Lastly, `previewHeight`, `previewWidth` and `seed` are somewhat redundant, as this data is also present inside the `canonicalSettings` object, but I decided to keep them seperate in the request and the database for ease of access. Might be useful in the future. Or not, idk :)
+
+### 3. API checks and pushes to database
+
+As described above, the API checks if there is a row in the jobs db with an identical `dedupe_key`. If yes, it skips most of the lifecycle, otherwise it creates a "job" record in the db with its status as "queued" (explained later).
+
+### 4. API pushes a message to queue (redis)
+
+Since the workers do not consume jobs directly from the database, but instead from the previously described redis queue, the API also enqueues a small redis message containing the `job_id` and `dedupe_key`:
+
+```
+async function enqueueJob(jobId: string, dedupeKey: string) {
+  const redisClient = await getRedisClient();
+  const streamName = process.env.REDIS_STREAM_NAME ?? "fmpg:jobs";
+
+  console.log("jobs route: enqueueing redis message", { streamName, jobId, dedupeKey });
+
+  return redisClient.xAdd(streamName, "*", {
+    job_id: jobId,
+    dedupe_key: dedupeKey,
+  });
+}
+```
+
+### 5. First available worker consumes job
+
+As mentioned previously, multiple workers run simultaneously to ensure parallel processing. If a worker is not currently executing a job, it is simply idling and periodically polling the redis queue (every second) for any available job. This is done as such:
+
+```
+while True:
+    assert self.redis_client is not None
+    messages = self.redis_client.xreadgroup(
+        groupname=self.config.redis_consumer_group,
+        consumername=self.config.redis_consumer_name,
+        streams={self.config.redis_stream_name: ">"},
+        count=1,
+        block=self.config.job_poll_interval_seconds * 1000,
+    )
+```
+
+I'm going to get into the details of this later, but the gist of it is that it polls the `fmpg` consumer group for any available jobs, and once it recieves a job, due to the structure of redis, that job will not be consumed by other workers anymore as to avoid a race condition or simply multiple workers handling the same workload.
+
+### 6. Worker marks DB status running and starts heartbeat updates
+
+After some initial sanity checks (such as if the job_id even exists etc.), the worker looks up the relevant row in the `jobs` db and changes its status from "queued" to "running".
