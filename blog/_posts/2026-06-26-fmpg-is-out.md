@@ -227,3 +227,27 @@ I'm going to get into the details of this later, but the gist of it is that it p
 ### 6. Worker marks DB status running and starts heartbeat updates
 
 After some initial sanity checks (such as if the job_id even exists etc.), the worker looks up the relevant row in the `jobs` db and changes its status from "queued" to "running".
+
+### 7. Worker runs factorio binary, generates png and runs analyzer
+
+This step is pretty simple. Each worker actually gets its own copy of the binary to avoid file locking issues, and runs it. The saved image follows the naming convention of `gp-{dedupe_key}.png` (where "gp" stands for "generated preview") as this allows for easy blob storage lookup later. Afterwards, the worker also runs the preview analyzer over the generated png and saves the output file as `pd-{dedupe_key}.json` ("pd" as in "preview data").
+
+### 8. Worker uploads png/json to object storage
+
+After generation and alanysis is complete, the worker uploads the generated files to blob storage. As blob storage is effectively a flat structure, the naming convention discussed before becomes necessary to provide some sort of deterministic file lookup.
+
+### 9. Worker updates DB status completed with artifact paths
+
+After these artifacts are uploaded to object storage, the worker writes the filenames to the `"artifacts"` table in the database, which is connected to the `"jobs"` table on `job_id`. This table simply holds `job_id` as key, `artifact_type` which is either metadata or generated png and finally `object_key`, which is the filename itself. If my math is correct, each entry in the `jobs` database should have 2 corresponding `artifacts` entries (json and png).
+
+### 10. Worker ACKs on redis queue
+
+Pretty simple. After all is done (or in case of failure), the worker then sends an `XACK` to the redis queue for the message, so that the entry is removed from the queue for good.
+
+### 11. Client polls API for result
+
+This is the final step. The client (or rather, client-side javascript) stats polling the `/jobs` API endpoint until it either times out, or the endpoint presents an result to the client. This would have been implemented much more cleanly would I have used a websocket or something, which would allow me to also transmit job status back to the client in real time, but thats a project for later :)
+
+# VMs and hosting in general
+
+Before I go into the previously mentioned components, I would like to briefly mention the entire hosting setup. This entire project is hosted on 5 different VMs on my home cluster (writeup about that comming in the future :)). Briefly explained, I recently got my hands on a pair of 
