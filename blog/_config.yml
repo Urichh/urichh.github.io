@@ -37,6 +37,7 @@ defaults:
       show_date: true
 
 plugins:
+  - jekyll-remote-theme
   - jekyll-paginate
   - jekyll-sitemap
   - jekyll-gist
