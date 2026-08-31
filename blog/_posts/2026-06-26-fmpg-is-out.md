@@ -250,4 +250,18 @@ This is the final step. The client (or rather, client-side javascript) stats pol
 
 # VMs and hosting in general
 
-Before I go into the previously mentioned components, I would like to briefly mention the entire hosting setup. This entire project is hosted on 5 different VMs on my home cluster (writeup about that comming in the future :)). Briefly explained, I recently got my hands on a pair of 
+Before I go into the previously mentioned components, I would like to briefly mention the entire hosting setup. This entire project is hosted on 5 different VMs on my home cluster (writeup about that comming in the future :)). Briefly explained, I recently got my hands on a pair of [IBM System x3550 M4](https://pubs.lenovo.com/x3550-m4/) servers, which host my proxmox homelab. On the cluster, I then set up 5 different VMs, some of which are specific to this project, and some of which are more general.
+
+<figure style="text-align:center">
+    <img src="{{ site.baseurl }}/assets/images/proxmox_vms_screenshot.png" alt="VMs inside proxmox" title="VMs inside proxmox" style="display:block;margin:0 auto;height:20em;width:15em"/>
+    <figcaption style="display:block;text-align:center;clear:both;width:25em;margin:0.5em auto 0">VMs inside proxmox</figcaption>
+</figure>
+
+Pretty much all the VMs (with some exceptions) are running debian 13 (trixie) with only a minimal setup (imported ssh keys, ufw etc.). Below is a brief descriptions of the VMs used in this project:
+ - **<u>GW-GENERAL01</u>**: This is my general purpose web gateway/reverse proxy VM. All http(s) traffic to my router is forwarded to this VM running nginx, which in our case than forwards traffic to the fmpg VM.
+ - **<u>FMPGWEB01</u>**: Just the VM running the preview generator frontend.
+ - **<u>FMPGWORKER01</u>**: This VM mostly just runs docker engine with all the docker workers
+ - **<u>SQLGENERAL01</u>**: A general SQL VM running PostgreSQL. This VM also holds this projects database. This VM also runs the Redis queue.
+ - **<u>BLOBSTORAGE01</u>**: Finally, this VM is running the projects object storage "database" (if you can call it that).
+
+Realistically, I didn't have to split all these roles across this many VMs, but it seemed like a clean and "professional" approach, and additionally my newly acquired computing power had to be used for something :)
