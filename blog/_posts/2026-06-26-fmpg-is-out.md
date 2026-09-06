@@ -325,3 +325,93 @@ The screenhsot below displays the contents returned to the frontend once (or rat
 </figure>
 
 # Workers
+
+The workers are responsible for consuming jobs from the queue and generating preview images. The entire system is designed to be horizontally scalable, as multiple worker containers can run simultaneously and automatically distribute work via Redis consumer groups.
+
+## Docker Deployment
+
+The worker runs as a containerized Python application defined by a Dockerfile. The image is based on `python:3.12-slim` and includes system dependencies for preview generation: `libgl1` and `libglib2.0-0` (required by OpenCV for image analysis), plus `ca-certificates` and `curl` for pip. Dependencies are specified in `requirements.txt` which the container reads during startup and includes `NumPy`, `OpenCV (headless)`, `Redis`, `psycopg2`, and `boto3` for the S3-compatible storage access.
+
+Each worker also needs its own copy of the factorio binary in order to avoid file locking issues, which is implemented in the `entrypoint.sh` script. The base Factorio binary is baked into the image at `/app/factorio-base/`, and on startup, the entrypoint copies it to `/app/factorio` with a marker file to prevent re-initialization on restart. This per container isolation is essential because the Factorio binary generates temporary files during map preview rendering, and shared access would cause concurrency issues. The script then executes the Python worker.
+
+```
+FROM python:3.12-slim
+
+#don't write .pyc files and don't buffer output
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+
+WORKDIR /app
+
+#install dependencies. ca-certificates & curl needed for pip, libgl1 & libglib2.0-0 needed for previewAnalyzer (openCV)
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        ca-certificates \
+        curl \
+        libgl1 \
+        libglib2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir -r /app/requirements.txt
+
+COPY previewAnalyzer.py /app/previewAnalyzer.py
+COPY worker.py /app/worker.py
+
+COPY entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
+ENTRYPOINT ["/app/entrypoint.sh"]
+CMD ["python", "-u", "worker.py"]
+```
+
+## Docker compose config
+
+The docker-compose yml defines the worker service. Some fun facts:
+ - **Scaling**: The service has no fixed container_name, which allows `docker-compose up --scale fmpg-worker=N` to spawn multiple instances, each getting a unique name, which is a very simple way of achieving horizontal scaling :)
+ - **Volume mounts**: The /srv/fmpg-worker/data directory provides scratch space for temporary files during generation; the Factorio base, analyzer script, and requirements are mounted read-only to prevent accidental modifications.
+ - **Healthcheck**: A very basic health check runs every 30s and just checks wether shell is still responding. A more thorough check of dependencies etc is definetly planned.
+```
+     healthcheck:
+      test: ["CMD-SHELL", "python -c \"import sys; sys.exit(0)\""]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+```
+
+## Job Processing Pipeline
+
+Each worker runs a main loop that consumes messages from the Redis stream using consumer groups. The `ensure_consumer_group()` method creates the consumer group on first startup. Workers then call `xreadgroup()` to block until a new message arrives or the poll interval expires.
+
+When a job is received, the worker: (1) updates its status to "running" in PostgreSQL, (2) invokes the Factorio binary via subprocess to generate a preview PNG, (3) runs the preview analyzer to extract metadata into JSON, (4) uploads both files to Garage and records artifact rows in PostgreSQL, and (5) marks the job complete.
+
+# SQL
+
+As described previously, the entire fmpg project uses two SQL tables: `jobs` and `artifacts`. Below is a nice little schema I drew up to represent that:
+
+<figure style="text-align:center">
+    <img src="{{ site.baseurl }}/assets/images/fmpg_db_shema.png" alt="SQL schema" title="SQL schema" style="display:block;margin:0 auto;height:20em;width:35em"/>
+    <figcaption style="display:block;text-align:center;clear:both;width:25em;margin:0.5em auto 0">SQL schema</figcaption>
+</figure>
+
+As you can see, the two tables are connected (primary-foreign key) on `job_id`. Each row in the `jobs` table should (currently) have two associated rows in the `artifacts` table, one for the png and one for the json metadata. The reaseon I chose to split this into two seperate tables is also because the artifacts might change in the future, especially with planed expansions to ore predictions.
+
+# Future plans
+
+Here at the end of this blog post, I would like to briefly mentioned some future plans for this project. Overall please keep in mind that my free time and attention span are severy limited so there will be no timeline for any of this :D
+
+First of all, like i've mentioned before, the current state of this project is ultimately a foundation for the eventual use case of generating desirable maps. Currently, I think this project is set up pretty great to facilitate that, but I still have to implement the following:
+
+ - **Calculate estimated resources for each ore patch**. This is probbably the most logical next step, but it's not quite as trivial as you may belive. From my current research, ore patch resources is calculated based on the patch size and offsett from center of generated map (further out the patch is, the richer it is). But still, I doubt this calculation is that simple, so the best I can do for now is just to hope that it's deterministic (no rng).
+ - **Automatically finding desired seeds for a set of criteria**. This is the logical next step in this chain. Once i'm able to calculate expected resources in an ore patch, I should be able to, for example, input desired map properties (e.g. how much uranium in a specific area bordering a body of water etc.) and then generate map previews matching that criteria.
+ - **Map exchange strings**. This should be pretty simple. Once the system finds a satisfactory seed and map gen parameters, the user should be able to generate a new world in their game with these settings. Fortunately, the game supports so called [map exchange strings](https://wiki.factorio.com/Map_exchange_string_format), which allow users to format all parameters into a single base64 string and copy it into the game. There actually already exists a relevant github repo which implements this ([factorio-exchange-string-parser](https://github.com/rfvgyhn/factorio-exchange-string-parser)), so I will have to look into that.
+ - **Misc stuffs**. I've been informed of quite a few bugs and otherwise quality-of-life problems which shall be adressed some time in the future :)
+
+# Conclusion
+
+Ok, we finnaly made it to the end. Realistically, I spent quite a few evenings and weekends making this, and some more writing this over-complicated post, but it's been loads of fun :)
+
+Overall, Factorio Map Preview Generator started as a solution to a very specific mini-problem (finding useful resources without ruining exploration or disabling achievements). What began as a simple idea of automating Factorio’s map preview command eventually grew into a "distributed" system involving a frontend, API layer, PostgreSQL, Redis, Docker workers, object storage, and image analysis. It's definetly way more complex than necessary, but building it was loads of fun and thats what really matters.
+
+Any and all feedback is welcome at urban(at)urbansite.si.
+
+Have a good one!
