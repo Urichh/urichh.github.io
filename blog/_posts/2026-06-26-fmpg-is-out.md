@@ -25,7 +25,7 @@ So before I dive into this entire project, you should know that the website is a
     <figcaption style="display:block;text-align:center;clear:both;width:25em;margin:0.5em auto 0">Website screenshot</figcaption>
 </figure>
 
-Essentially, The website allows users to generate map previews based on a number of input parameters. The preview is then also analyzed for extra information, but that functionallity is currently quite limited. More info on that later.
+Essentially, The website allows users to generate map previews based on a number of input parameters. The preview is then also analyzed for extra information, but that functionality is currently quite limited. More info on that later.
 
 # Initial idea and end goal
 
@@ -57,20 +57,20 @@ The idea was simple:
  - worker runs the factorio binary with specified command line arguments and generates a png,
  - worker sends png back to frontend website, which then presents it back to the user.
 
-Of course, it would turn out more complex than this, partially due to unforseen challanges but also my own tendency to overcomplicate, but this was the general idea getting into it.
+Of course, it would turn out more complex than this, partially due to unforeseen challenges but also my own tendency to overcomplicate, but this was the general idea getting into it.
 
 # Image analysis
 
 Before I go too far into the rest of this post, I'd like to briefly describe the preview image analyzer, as I wasn't sure where to best place this section inside this blog post.
 
-The preview analyzer is a python script, that runs "over" the generated PNG in order to extract certain information from it. Currently, that information is limited to ore patches, which the preview analyzer stores in the form of vertecies in a JSON file, and the website then interprets those vertecies into overlays over the generated PNG.
+The preview analyzer is a python script, that runs "over" the generated PNG in order to extract certain information from it. Currently, that information is limited to ore patches, which the preview analyzer stores in the form of vertices in a JSON file, and the website then interprets those vertices into overlays over the generated PNG.
 
 <figure style="text-align:center">
     <img src="{{ site.baseurl }}/assets/images/preview_side_by_side.png" alt="Before and after preview analysis" title="Before and after preview analysis" style="display:block;margin:0 auto;height:15em;width:30em"/>
     <figcaption style="display:block;text-align:center;clear:both;width:25em;margin:0.5em auto 0">Before and after preview analysis</figcaption>
 </figure>
 
-As you can see, this current functionallity is a little useless, but It's here as a jumping-off point for future endevours. My eventual goal is to calculate expected resources for ore patches, which I could then use to generate desirable preview *en masse*.
+As you can see, this current functionality is a little useless, but It's here as a jumping-off point for future endeavors. My eventual goal is to calculate expected resources for ore patches, which I could then use to generate desirable preview *en masse*.
 
 ## How it works
 
@@ -91,7 +91,7 @@ This function just builds a strict binary mask, which can be then used to determ
 
 After the mask is created, the analyzer cleans it up with morphology operations using [cv2](https://pypi.org/project/opencv-python/) *magic*. This helps remove tiny noise and smooth out small gaps before patch detection, but this is not always useful in "pixel-art" images such as here. This might need some more tweaking in the future.
 
-Once the mask is clean enough, the script finds connected regions in it. Each connected region becomes a candidate ore patch, and anything smaller than the minimum area threshold is ignored. For each valid connected component, the analyzer traces its contour and simplifies it into a polygon. If the contour is too simple to produce a useful polygon, it falls back to a bounding box rectangle, but that should only really happen if the user deliberatly chooses very small ore patch sizes in the input parameters.
+Once the mask is clean enough, the script finds connected regions in it. Each connected region becomes a candidate ore patch, and anything smaller than the minimum area threshold is ignored. For each valid connected component, the analyzer traces its contour and simplifies it into a polygon. If the contour is too simple to produce a useful polygon, it falls back to a bounding box rectangle, but that should only really happen if the user deliberately chooses very small ore patch sizes in the input parameters.
 
 That data is then packaged into a "Patch" object, which stores the patch ID, resource type, pixel area, centroid, bounding box, and polygon:
 
@@ -120,7 +120,7 @@ Before diving into specific, I just want to give a brief high-level overview of 
 ## Brief overview of components
 
 ### Frontend
-The frontend was created using netx.js and typescript etc. It just accepts user input and displays the generated image. I do have to admit that I find frontend development quite boring, so 90% of frontend code was LLM generated :)
+The frontend was created using next.js and typescript etc. It just accepts user input and displays the generated image. I do have to admit that I find frontend development quite boring, so 90% of frontend code was LLM generated :)
 
 ### API plane
 
@@ -155,10 +155,10 @@ Finally, the blob storage layer is implemented using [Garage](https://garagehq.d
 For this chapter, I think it would be best if I describe the job lifecycle so that I can present how all these previously described components fit into the whole project.
 
 ### 1. Client submits seed and settings to the `/map-settings` API endpoint.
-Client just reads data from the generation parameters pannel and others, and sends the data over to the API endpoint. Pretty self-explanatory.
+Client just reads data from the generation parameters panel and others, and sends the data over to the API endpoint. Pretty self-explanatory.
 
 ### 2. The API endpoint computes a deterministic cache key
-This key, called a "`dedupe_key`", is used to check whether this is a duplicate request so that it may skip generation steps and immediatly return the result to the client. The dedupe key is constructed as following:
+This key, called a "`dedupe_key`", is used to check whether this is a duplicate request so that it may skip generation steps and immediately return the result to the client. The dedupe key is constructed as following:
 
 ```
 function buildDedupeKey(settings: unknown, seed: number, width: number, height: number) {
@@ -171,16 +171,16 @@ function buildDedupeKey(settings: unknown, seed: number, width: number, height: 
     previewWidth: width,
     seed,
   };
-  //needed for dedupe_key to detect identcal requests
+  //needed for dedupe_key to detect identical requests
   return createHash("sha256").update(canonicalStringify(payload)).digest("hex");
 }
 ```
 
-Here, values `analyzerVersion` and `factorioVersion` are hardcoded values indicating my analyzer (python script) and game version. thus, if I make an adjustment to the analyzer, seemingly identitcal requests will be re-processed.
+Here, values `analyzerVersion` and `factorioVersion` are hardcoded values indicating my analyzer (python script) and game version. thus, if I make an adjustment to the analyzer, seemingly identical requests will be re-processed.
 
-`canonicalSettings` is stringified canoicalized JSON structure of the data inputed in the Generation parameters panel. The structure of the JSON object should be consistent due to the logic which constructs the JSON object from the generation parameters pannel, but canonicalising it serves to future-proof the process as well as harden it overall.
+`canonicalSettings` is stringified canonicalized JSON structure of the data inputted in the Generation parameters panel. The structure of the JSON object should be consistent due to the logic which constructs the JSON object from the generation parameters panel, but canonicalising it serves to future-proof the process as well as harden it overall.
 
-Lastly, `previewHeight`, `previewWidth` and `seed` are somewhat redundant, as this data is also present inside the `canonicalSettings` object, but I decided to keep them seperate in the request and the database for ease of access. Might be useful in the future. Or not, idk :)
+Lastly, `previewHeight`, `previewWidth` and `seed` are somewhat redundant, as this data is also present inside the `canonicalSettings` object, but I decided to keep them separate in the request and the database for ease of access. Might be useful in the future. Or not, idk :)
 
 ### 3. API checks and pushes to database
 
@@ -220,7 +220,7 @@ while True:
     )
 ```
 
-I'm going to get into the details of this later, but the gist of it is that it polls the `fmpg` consumer group for any available jobs, and once it recieves a job, due to the structure of redis, that job will not be consumed by other workers anymore as to avoid a race condition or simply multiple workers handling the same workload.
+I'm going to get into the details of this later, but the gist of it is that it polls the `fmpg` consumer group for any available jobs, and once it receives a job, due to the structure of redis, that job will not be consumed by other workers anymore as to avoid a race condition or simply multiple workers handling the same workload.
 
 ### 6. Worker marks DB status running and starts heartbeat updates
 
@@ -232,7 +232,7 @@ This step is pretty simple. Each worker actually gets its own copy of the binary
 
 ### 8. Worker uploads png/json to object storage
 
-After generation and alanysis is complete, the worker uploads the generated files to blob storage. As blob storage is effectively a flat structure, the naming convention discussed before becomes necessary to provide some sort of deterministic file lookup.
+After generation and analysis is complete, the worker uploads the generated files to blob storage. As blob storage is effectively a flat structure, the naming convention discussed before becomes necessary to provide some sort of deterministic file lookup.
 
 ### 9. Worker updates DB status completed with artifact paths
 
@@ -244,11 +244,11 @@ Pretty simple. After all is done (or in case of failure), the worker then sends 
 
 ### 11. Client polls API for result
 
-This is the final step. The client (or rather, client-side javascript) stats polling the `/jobs` API endpoint until it either times out, or the endpoint presents an result to the client. This would have been implemented much more cleanly would I have used a websocket or something, which would allow me to also transmit job status back to the client in real time, but thats a project for later :)
+This is the final step. The client (or rather, client-side javascript) starts polling the `/jobs` API endpoint until it either times out, or the endpoint presents an result to the client. This would have been implemented much more cleanly would I have used a websocket or something, which would allow me to also transmit job status back to the client in real time, but thats a project for later :)
 
 # VMs and hosting in general
 
-Before I go into the previously mentioned components, I would like to briefly mention the entire hosting setup. This entire project is hosted on 5 different VMs on my home cluster (writeup about that comming in the future :)). Briefly explained, I recently got my hands on a pair of [IBM System x3550 M4](https://pubs.lenovo.com/x3550-m4/) servers, which host my proxmox homelab. On the cluster, I then set up 5 different VMs, some of which are specific to this project, and some of which are more general.
+Before I go into the previously mentioned components, I would like to briefly mention the entire hosting setup. This entire project is hosted on 5 different VMs on my home cluster (writeup about that coming in the future :)). Briefly explained, I recently got my hands on a pair of [IBM System x3550 M4](https://pubs.lenovo.com/x3550-m4/) servers, which host my proxmox homelab. On the cluster, I then set up 5 different VMs, some of which are specific to this project, and some of which are more general.
 
 <figure style="text-align:center">
     <img src="{{ site.baseurl }}/assets/images/proxmox_vms_screenshot.png" alt="VMs inside proxmox" title="VMs inside proxmox" style="display:block;margin:0 auto;height:20em;width:20em"/>
@@ -315,7 +315,7 @@ A particularly elegant detail: the endpoint validates the jobId format before qu
 
 This "artifacts proxy" endpoint retrieves generated preview files (PNG images and JSON data) from the Garage storage and serves them to the browser. It also acts as a credential "bridge" where the browser passes an object key (split into URL segments), the endpoint uses its configured Garage credentials to fetch the file, and returns the file content.
 
-The screenhsot below displays the contents returned to the frontend once (or rather "if") polling is successfull. The response includes some metadata which may or may not be used in the future, but the meat of it are the `previewPngUrl` and `previewJsonUrl`, which the frontend then uses to fetch the artifacts from object storage.
+The screenshot below displays the contents returned to the frontend once (or rather "if") polling is successful. The response includes some metadata which may or may not be used in the future, but the meat of it are the `previewPngUrl` and `previewJsonUrl`, which the frontend then uses to fetch the artifacts from object storage.
 
 <figure style="text-align:center">
     <img src="{{ site.baseurl }}/assets/images/response_example.png" alt="Polling response" title="Polling response" style="display:block;margin:0 auto;height:25em;width:40em"/>
@@ -367,7 +367,7 @@ CMD ["python", "-u", "worker.py"]
 The docker-compose yml defines the worker service. Some fun facts:
  - **Scaling**: The service has no fixed container_name, which allows `docker-compose up --scale fmpg-worker=N` to spawn multiple instances, each getting a unique name, which is a very simple way of achieving horizontal scaling :)
  - **Volume mounts**: The /srv/fmpg-worker/data directory provides scratch space for temporary files during generation; the Factorio base, analyzer script, and requirements are mounted read-only to prevent accidental modifications.
- - **Healthcheck**: A very basic health check runs every 30s and just checks wether shell is still responding. A more thorough check of dependencies etc is definetly planned.
+ - **Healthcheck**: A very basic health check runs every 30s and just checks whether shell is still responding. A more thorough check of dependencies etc is definitely planned.
 ```
      healthcheck:
       test: ["CMD-SHELL", "python -c \"import sys; sys.exit(0)\""]
@@ -391,24 +391,24 @@ As described previously, the entire fmpg project uses two SQL tables: `jobs` and
     <figcaption style="display:block;text-align:center;clear:both;width:25em;margin:0.5em auto 0">SQL schema</figcaption>
 </figure>
 
-As you can see, the two tables are connected (primary-foreign key) on `job_id`. Each row in the `jobs` table should (currently) have two associated rows in the `artifacts` table, one for the png and one for the json metadata. The reaseon I chose to split this into two seperate tables is also because the artifacts might change in the future, especially with planed expansions to ore predictions.
+As you can see, the two tables are connected (primary-foreign key) on `job_id`. Each row in the `jobs` table should (currently) have two associated rows in the `artifacts` table, one for the png and one for the json metadata. The reason I chose to split this into two separate tables is also because the artifacts might change in the future, especially with planned expansions to ore predictions.
 
 # Future plans
 
-Here at the end of this blog post, I would like to briefly mentioned some future plans for this project. Overall please keep in mind that my free time and attention span are severy limited so there will be no timeline for any of this :D
+Here at the end of this blog post, I would like to briefly mentioned some future plans for this project. Overall please keep in mind that my free time and attention span are severely limited so there will be no timeline for any of this :D
 
 First of all, like i've mentioned before, the current state of this project is ultimately a foundation for the eventual use case of generating desirable maps. Currently, I think this project is set up pretty great to facilitate that, but I still have to implement the following:
 
- - **Calculate estimated resources for each ore patch**. This is probbably the most logical next step, but it's not quite as trivial as you may belive. From my current research, ore patch resources is calculated based on the patch size and offsett from center of generated map (further out the patch is, the richer it is). But still, I doubt this calculation is that simple, so the best I can do for now is just to hope that it's deterministic (no rng).
+ - **Calculate estimated resources for each ore patch**. This is probably the most logical next step, but it's not quite as trivial as you may believe. From my current research, ore patch resources is calculated based on the patch size and offset from center of generated map (further out the patch is, the richer it is). But still, I doubt this calculation is that simple, so the best I can do for now is just to hope that it's deterministic (no rng).
  - **Automatically finding desired seeds for a set of criteria**. This is the logical next step in this chain. Once i'm able to calculate expected resources in an ore patch, I should be able to, for example, input desired map properties (e.g. how much uranium in a specific area bordering a body of water etc.) and then generate map previews matching that criteria.
  - **Map exchange strings**. This should be pretty simple. Once the system finds a satisfactory seed and map gen parameters, the user should be able to generate a new world in their game with these settings. Fortunately, the game supports so called [map exchange strings](https://wiki.factorio.com/Map_exchange_string_format), which allow users to format all parameters into a single base64 string and copy it into the game. There actually already exists a relevant github repo which implements this ([factorio-exchange-string-parser](https://github.com/rfvgyhn/factorio-exchange-string-parser)), so I will have to look into that.
- - **Misc stuffs**. I've been informed of quite a few bugs and otherwise quality-of-life problems which shall be adressed some time in the future :)
+ - **Misc stuffs**. I've been informed of quite a few bugs and otherwise quality-of-life problems which shall be addressed some time in the future :)
 
 # Conclusion
 
-Ok, we finnaly made it to the end. Realistically, I spent quite a few evenings and weekends making this, and some more writing this over-complicated post, but it's been loads of fun :)
+Ok, we finally made it to the end. Realistically, I spent quite a few evenings and weekends making this, and some more writing this over-complicated post, but it's been loads of fun :)
 
-Overall, Factorio Map Preview Generator started as a solution to a very specific mini-problem (finding useful resources without ruining exploration or disabling achievements). What began as a simple idea of automating Factorio’s map preview command eventually grew into a "distributed" system involving a frontend, API layer, PostgreSQL, Redis, Docker workers, object storage, and image analysis. It's definetly way more complex than necessary, but building it was loads of fun and thats what really matters.
+Overall, Factorio Map Preview Generator started as a solution to a very specific mini-problem (finding useful resources without ruining exploration or disabling achievements). What began as a simple idea of automating Factorio’s map preview command eventually grew into a "distributed" system involving a frontend, API layer, PostgreSQL, Redis, Docker workers, object storage, and image analysis. It's definitely way more complex than necessary, but building it was loads of fun and thats what really matters.
 
 Any and all feedback is welcome at urban(at)urbansite.si.
 
