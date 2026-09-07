@@ -22,6 +22,10 @@ minimal_mistakes_skin: "dark"
 url: "https://www.urbansite.si"
 baseurl: "/blog"
 
+#silence errors from sass when using the minimal-mistakes theme
+sass:
+  quiet_deps: true
+
 #sidebar
 defaults:
   - scope:
@@ -37,6 +41,7 @@ defaults:
       show_date: true
 
 plugins:
+  - jekyll-remote-theme
   - jekyll-paginate
   - jekyll-sitemap
   - jekyll-gist

@@ -122,6 +122,18 @@ a {
     padding: 0rem 1rem 0rem 1rem;
 }
 
+.latest-content .box {
+    border: none;
+    display: block;
+    margin: 0;
+    padding: 0;
+}
+
+.latest-content legend {
+    padding: 0;
+    font-size: 1.2rem;
+}
+
 legend {
     padding: 0 0.5rem;
     font-weight: 600;
