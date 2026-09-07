@@ -91,9 +91,9 @@ This function just builds a strict binary mask, which can be then used to determ
 
 After the mask is created, the analyzer cleans it up with morphology operations using [cv2](https://pypi.org/project/opencv-python/) *magic*. This helps remove tiny noise and smooth out small gaps before patch detection, but this is not always useful in "pixel-art" images such as here. This might need some more tweaking in the future.
 
-Once the mask is clean enough, the script finds connected regions in it. Each connected region becomes a candidate ore patch, and anything smaller than the minimum area threshold is ignored. For each valid connected component, the analyzer traces its contour and simplifies it into a polygon. If the contour is too simple to produce a useful polygon, it falls back to a bounding box rectangle, but that should only really happen if the user deliberately chooses very small ore patch sizes in the input parameters.
+Once the mask is clean enough, the script finds connected regions in it. Each connected region becomes a candidate ore patch, and anything smaller than the minimum area threshold is discarded. For each valid connected component, the analyzer traces its contour and simplifies it into a polygon. If the contour is too small to produce a useful polygon, it falls back to a bounding box rectangle, but that should only really happen if the user deliberately chooses very small ore patch sizes in the input parameters.
 
-That data is then packaged into a "Patch" object, which stores the patch ID, resource type, pixel area, centroid, bounding box, and polygon:
+That data is then packaged into a "`Patch`" object, which stores the patch ID, resource type, pixel area, centroid, bounding box, and polygon:
 
 ```
 Patch(
@@ -120,7 +120,7 @@ Before diving into specific, I just want to give a brief high-level overview of 
 ## Brief overview of components
 
 ### Frontend
-The frontend was created using next.js and typescript etc. It just accepts user input and displays the generated image. I do have to admit that I find frontend development quite boring, so 90% of frontend code was LLM generated :)
+The frontend was created using next.js and typescript. It just accepts user input and displays the generated image. I do have to admit that I find frontend development quite boring, so 90% of frontend code was LLM generated :)
 
 ### API plane
 
@@ -136,7 +136,7 @@ The Redis queue is the projects job queue. The web app enqueues each new preview
 
 ### Docker worker pool
 
-The Docker worker pool is a deliberately simple horizontal layer. One identical container image built from a Dockerfile is launched repeatedly (compose scaling) by docker-compose.worker.yml, and each instance runs the same Python worker against the same Redis stream, Postgres database, and Garage bucket. The compose file keeps the container stateless by injecting all runtime config from .env and mounting only the analyzer, Factorio files, and a shared data volume, so scaling is basically just increasing the number of worker replicas.
+The Docker worker pool is a deliberately simple horizontal layer. One identical container image built from a Dockerfile is launched repeatedly (compose scaling) by `docker-compose.worker.yml`, and each instance runs the same Python worker against the same Redis stream, Postgres database, and Garage bucket. The compose file keeps the container stateless by injecting all runtime config from .env and mounting only the analyzer, Factorio files, and a shared data volume, so scaling is basically just increasing the number of worker replicas.
 
 ### Preview generator
 
@@ -155,7 +155,7 @@ Finally, the blob storage layer is implemented using [Garage](https://garagehq.d
 For this chapter, I think it would be best if I describe the job lifecycle so that I can present how all these previously described components fit into the whole project.
 
 ### 1. Client submits seed and settings to the `/map-settings` API endpoint.
-Client just reads data from the generation parameters panel and others, and sends the data over to the API endpoint. Pretty self-explanatory.
+Client just reads data from the generation parameters panel and others, and sends the data over to an API endpoint. Pretty self-explanatory.
 
 ### 2. The API endpoint computes a deterministic cache key
 This key, called a "`dedupe_key`", is used to check whether this is a duplicate request so that it may skip generation steps and immediately return the result to the client. The dedupe key is constructed as following:
@@ -178,7 +178,7 @@ function buildDedupeKey(settings: unknown, seed: number, width: number, height: 
 
 Here, values `analyzerVersion` and `factorioVersion` are hardcoded values indicating my analyzer (python script) and game version. thus, if I make an adjustment to the analyzer, seemingly identical requests will be re-processed.
 
-`canonicalSettings` is stringified canonicalized JSON structure of the data inputted in the Generation parameters panel. The structure of the JSON object should be consistent due to the logic which constructs the JSON object from the generation parameters panel, but canonicalising it serves to future-proof the process as well as harden it overall.
+`canonicalSettings` is a stringified canonicalized JSON structure of the data inputted in the Generation parameters panel. The structure of the JSON object should be consistent due to the logic which constructs the JSON object from the generation parameters panel, but canonicalising it serves to future-proof the process as well as harden it overall.
 
 Lastly, `previewHeight`, `previewWidth` and `seed` are somewhat redundant, as this data is also present inside the `canonicalSettings` object, but I decided to keep them separate in the request and the database for ease of access. Might be useful in the future. Or not, idk :)
 
@@ -299,7 +299,7 @@ export async function POST(req: NextRequest) {
 
 ## /api/jobs (POST)
 
-The `jobs` endpoint accepts the map settings generated by the previous endpoint and submits them into the preview generation queue. It's functionally a gateway between the map configuration and job system. Each request must include the rawSettings (the full settings object) and the dedupeKey (from the X-Dedupe-Key header).
+The `jobs` endpoint accepts the map settings generated by the previous endpoint and submits them into the preview generation queue. It's functionally a gateway between the map configuration and job system. Each request must include the rawSettings (the full settings object) and the dedupeKey (from the `X-Dedupe-Key` header).
 
 This endpoint also implements the previously mentioned deduplication. It first checks if a job with the same dedupeKey already exists in the database. If found, it returns the existing job's ID and metadata without creating a duplicate. If new, it inserts a job row into PostgreSQL and enqueues a message to Redis containing the job ID and dedupeKey. The response indicates whether the job was created or reused via the created flag, and whether it was newly queued via the queued flag.
 
