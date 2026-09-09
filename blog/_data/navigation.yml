@@ -1,0 +1,2 @@
+#becauase the quick-start guide menmu item decided to show up (from the default theme) and I don't want it to be there, I have to override the menu items here
+main: []
