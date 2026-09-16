@@ -1,1 +1,1 @@
-Sitemap: http://localhost:4000/writeups/sitemap.xml
+Sitemap: https://www.urbansite.si/writeups/sitemap.xml

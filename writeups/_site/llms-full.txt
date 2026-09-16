@@ -1,6 +1,6 @@
 # init writeup
 
-URL: http://localhost:4000/init-writeup/
+URL: https://www.urbansite.si/init-writeup/
 Date: 2026-01-24T00:00:00+01:00
 
 Just a sample post for testing :) 
@@ -9,7 +9,7 @@ Just a sample post for testing :)
 
 # justCTF - Shellcode printer
 
-URL: http://localhost:4000/justCTF-shellcode-printer/
+URL: https://www.urbansite.si/justCTF-shellcode-printer/
 Date: 2026-02-08T00:00:00+01:00
 
 For my first real writeup on here, i've decided to document a pretty simple pwn challenge I solved a while ago at [justCTF2025](https://2025.justctf.team/). 
