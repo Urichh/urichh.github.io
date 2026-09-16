@@ -10,8 +10,8 @@
     
   </title>
 
-  <!-- Begin Jekyll SEO tag v2.8.0 -->
-<meta name="generator" content="Jekyll v3.10.0" />
+  <!-- Begin Jekyll SEO tag v2.7.3 -->
+<meta name="generator" content="Jekyll v4.4.1" />
 <meta property="og:title" content="justCTF - Shellcode printer" />
 <meta property="og:locale" content="en_US" />
 <meta name="description" content="For my first real writeup on here, i’ve decided to document a pretty simple pwn challenge I solved a while ago at justCTF2025." />
@@ -24,24 +24,26 @@
 <meta name="twitter:card" content="summary" />
 <meta property="twitter:title" content="justCTF - Shellcode printer" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2026-02-08T00:00:00+01:00","datePublished":"2026-02-08T00:00:00+01:00","description":"For my first real writeup on here, i’ve decided to document a pretty simple pwn challenge I solved a while ago at justCTF2025.","headline":"justCTF - Shellcode printer","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/writeups/justCTF-shellcode-printer/"},"url":"http://localhost:4000/writeups/justCTF-shellcode-printer/"}</script>
+{"headline":"justCTF - Shellcode printer","dateModified":"2026-02-08T00:00:00+01:00","datePublished":"2026-02-08T00:00:00+01:00","url":"http://localhost:4000/writeups/justCTF-shellcode-printer/","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/writeups/justCTF-shellcode-printer/"},"@type":"BlogPosting","description":"For my first real writeup on here, i’ve decided to document a pretty simple pwn challenge I solved a while ago at justCTF2025.","@context":"https://schema.org"}</script>
 <!-- End Jekyll SEO tag -->
 
   <link type="application/atom+xml" rel="alternate" href="http://localhost:4000/writeups/feed.xml" title="Writeups @ urbansite.si" />
 
   <!-- Favicon -->
-  <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/favicon/apple-touch-icon.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon/favicon-16x16.png">
-  <link rel="manifest" href="/assets/images/favicon/site.webmanifest">
-  <link rel="mask-icon" href="/assets/images/favicon/safari-pinned-tab.svg" color="#5bbad5">
-  <link rel="shortcut icon" href="/assets/images/favicon/favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180" href="/writeups/assets/images/favicon/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/writeups/assets/images/favicon/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/writeups/assets/images/favicon/favicon-16x16.png">
+  <link rel="manifest" href="/writeups/assets/images/favicon/site.webmanifest">
+  <link rel="mask-icon" href="/writeups/assets/images/favicon/safari-pinned-tab.svg" color="#5bbad5">
+  <link rel="shortcut icon" href="/writeups/assets/images/favicon/favicon.ico">
   <meta name="msapplication-TileColor" content="#00aba9">
-  <meta name="msapplication-config" content="/assets/images/favicon/browserconfig.xml">
+  <meta name="msapplication-config" content="/writeups/assets/images/favicon/browserconfig.xml">
   <meta name="theme-color" content="#ffffff">
   <!-- Favicon -->
 
-  <link rel="stylesheet" href="/writeups/assets/css/main.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/writeups/assets/css/main.css" />
   
     <script type="text/javascript">
   window.addEventListener('load', themeChange);
@@ -50,35 +52,39 @@
     document.documentElement.setAttribute('data-theme', currentTheme);
 
   function themeChange() {
-    let button = document.querySelector('.theme-toggle');
+    var button = document.querySelector('.theme-toggle');
+    if (!button) return;
+
+    function updateIcon(theme) {
+      button.setAttribute('aria-pressed', theme === 'dark' ? 'true' : 'false');
+      button.querySelector('.icon-sun').style.display = theme === 'dark' ? 'block' : 'none';
+      button.querySelector('.icon-moon').style.display = theme === 'dark' ? 'none' : 'block';
+    }
+
+    updateIcon(document.documentElement.getAttribute('data-theme'));
 
     button.addEventListener('click', function (e) {
-      let currentTheme = document.documentElement.getAttribute('data-theme');
-      if (currentTheme === 'dark') {
-        transition();
-        document.documentElement.setAttribute('data-theme', 'light');
-        localStorage.setItem('theme', 'light');
-      } else {
-        transition();
-        document.documentElement.setAttribute('data-theme', 'dark');
-        localStorage.setItem('theme', 'dark');
-      }
+      var currentTheme = document.documentElement.getAttribute('data-theme');
+      var next = currentTheme === 'dark' ? 'light' : 'dark';
+
+      transition();
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+      updateIcon(next);
     });
 
-    let transition = () => {
+    function transition() {
       document.documentElement.classList.add('transition');
-      window.setTimeout(() => {
+      window.setTimeout(function () {
         document.documentElement.classList.remove('transition');
       }, 1000);
     }
   }
 </script>
 
-
   
 </head>
-<body>
-    <main class="page-content" aria-label="Content">
+<body><main class="page-content" aria-label="Content">
       <div class="w">
         <a href="/writeups/" style="display: inline-block; margin-bottom: 2rem;">back</a>
 
@@ -105,7 +111,7 @@
 
 <h2 id="intro">Intro</h2>
 
-<p>The challenge provides provides us with just the binary and a Dockerfile. First, let’s do some basic reconnaissance using <code class="language-plaintext highlighter-rouge">file</code> and <code class="language-plaintext highlighter-rouge">checksec</code>:</p>
+<p>The challenge provides us with just the binary and a Dockerfile. First, let’s do some basic reconnaissance using <code class="language-plaintext highlighter-rouge">file</code> and <code class="language-plaintext highlighter-rouge">checksec</code>:</p>
 
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">(</span>pyvenv<span class="o">)</span> urichh@toaster:~/Desktop/challs-dropbox/justCTF2025-pwn-shellcode_printer<span class="nv">$ </span>file vuln
 vuln: ELF 64-bit LSB pie executable, x86-64, version 1 <span class="o">(</span>SYSV<span class="o">)</span>, dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]<span class="o">=</span>e454d2e08d672dd2e65a794a8fa7bb2bbb673aed, <span class="k">for </span>GNU/Linux 3.2.0, stripped
@@ -198,13 +204,13 @@ vuln: ELF 64-bit LSB pie executable, x86-64, version 1 <span class="o">(</span>S
 <span class="p">}</span>
 </code></pre></div></div>
 
-<p>One line immediatly stands out - <code class="language-plaintext highlighter-rouge">fprintf(__stream,input_buffer);</code>, as it doesn’t contain a format specifier. This leads to a format string vulnerability, as we can input things like <code class="language-plaintext highlighter-rouge">%x</code>, <code class="language-plaintext highlighter-rouge">%p</code>, <code class="language-plaintext highlighter-rouge">%n</code> etc. and fprintf will evaluate them.</p>
+<p>One line immedietly stands out - <code class="language-plaintext highlighter-rouge">fprintf(__stream,input_buffer);</code>, as it doesn’t contain a format specifier. This leads to a format string vulnerability, as we can input things like <code class="language-plaintext highlighter-rouge">%x</code>, <code class="language-plaintext highlighter-rouge">%p</code>, <code class="language-plaintext highlighter-rouge">%n</code> etc. and fprintf will evaluate them.</p>
 
 <p>At first I ran the binary and tried to leak some values from the stack using <code class="language-plaintext highlighter-rouge">%x</code>, <code class="language-plaintext highlighter-rouge">$2%x</code>, <code class="language-plaintext highlighter-rouge">$2%x</code> and such, but it produced no output what so ever. After a quick return to the decompiled pseudocode, I quickly noticed the problem: <code class="language-plaintext highlighter-rouge">__stream = fopen("/dev/null","w");</code>. The stream was writing output into <code class="language-plaintext highlighter-rouge">/dev/null</code> instead of my terminal, so I decided to change that :)</p>
 
 <h2 id="patching-the-binary-to-capture-output">Patching the binary to capture output</h2>
 
-<p>As stated above, I didn’t like the fact that I didn’t see any output from the binary, so I decided to patch it. This is in no way needed to solve the challenge, but it just makes it easier. Since the string <code class="language-plaintext highlighter-rouge">/dev/tty</code> (which we want as to print to console) is shorter then <code class="language-plaintext highlighter-rouge">/dev/null</code>, we can simple carve the bytes and add an extra null byte at the end, so as to not change the offsets and pointers, which would have been a huge pain, and usually isn’t worth it:</p>
+<p>As stated above, I didn’t like the fact that I didn’t see any output from the binary, so I decided to patch it. This is in no way needed to solve the challenge, but it just makes it easier. Since the string <code class="language-plaintext highlighter-rouge">/dev/tty</code> (which we want as to print to console) is shorter than <code class="language-plaintext highlighter-rouge">/dev/null</code>, we can simply carve the bytes and add an extra null byte at the end, so as to not change the offsets and pointers, which would have been a huge pain, and usually isn’t worth it:</p>
 
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sed</span> <span class="nt">-i</span> <span class="s1">'s|/dev/null|/dev/tty\x00|g'</span> vuln_patched
 </code></pre></div></div>
@@ -236,7 +242,7 @@ Enter a format string:
 </code></pre></div></div>
 
 <ul>
-  <li>0x0: map at address 0 (probbably ignored due to ASLR?)</li>
+  <li>0x0: map at address 0 (probabbly ignored due to ASLR?)</li>
   <li>page_size: Size of allocation</li>
   <li>7: PROT_READ (1) | PROT_WRITE (2) | PROT_EXEC (4) = Read+Write+Execute (RWX!)</li>
   <li>0x22: MAP_PRIVATE (2) | MAP_ANONYMOUS (0x20) (not important - I think)</li>
@@ -251,7 +257,7 @@ Enter a format string:
 
 <p>Then we enter the main loop, which:</p>
 <ul>
-  <li>clars (zeroes) the input buffer - <code class="language-plaintext highlighter-rouge">local_28[n] = '\0';</code></li>
+  <li>clears (zeroes) the input buffer - <code class="language-plaintext highlighter-rouge">local_28[n] = '\0';</code></li>
   <li>reads up to 0x10 (15 + null byte) characters of input and stores into <code class="language-plaintext highlighter-rouge">local_28</code></li>
   <li>checks for EOF</li>
   <li>removes newline (\n)</li>
@@ -276,7 +282,7 @@ Enter a format string:
 
 <p>Our goal is to write some shellcode, which will spawn a shell (/bin/sh), into the RWX memory page (which is then executed) using the format string vulnerability. To achieve this, we can use the <code class="language-plaintext highlighter-rouge">%n</code> format specifier. <code class="language-plaintext highlighter-rouge">%n</code> simply writes the number of bytes printed so far to the address pointed to by an argument (we’ll get to that later). We can use this in addition to a <code class="language-plaintext highlighter-rouge">%c</code> specifier, which prints any desired number of characters. When we combine them, something like <code class="language-plaintext highlighter-rouge">%195c%10$n</code> will write the number 195 (0xc3 in hex - ret) to the address held as the 10th argument (10th value on the stack at that time).</p>
 
-<p>We can also see that even though we can supply 16 bytes of input, the function pointer only moves forward by two. This means that even though we <em>can</em> write our shellcode in 16 byte chunks, it would be finnicky to align the function pointer. Instead, I thought it would be best to just split the payload into 2 byte chunks. Since <code class="language-plaintext highlighter-rouge">%n</code> will write 4 bytes, we instead need to use <code class="language-plaintext highlighter-rouge">%hn</code> (called a short/half int), to get our desired 2 byte chunks.</p>
+<p>We can also see that even though we can supply 16 bytes of input, the function pointer only moves forward by two. This means that even though we <em>can</em> write our shellcode in 16 byte chunks, it would be finicky to align the function pointer. Instead, I thought it would be best to just split the payload into 2 byte chunks. Since <code class="language-plaintext highlighter-rouge">%n</code> will write 4 bytes, we instead need to use <code class="language-plaintext highlighter-rouge">%hn</code> (called a short/half int), to get our desired 2 byte chunks.</p>
 
 <p>So taking this into account, here are the steps we need to take:</p>
 <ul>
@@ -288,7 +294,7 @@ Enter a format string:
 
 <h3 id="finding-correct-offset">Finding correct offset</h3>
 
-<p>We could go about finding the correct offset in a debugger, but imo it’s easier to just brute force this, since the offset is usally fairly small. If we just test out some offsets, this is what we get:</p>
+<p>We could go about finding the correct offset in a debugger, but imo it’s easier to just brute force this, since the offset is usually fairly small. If we just test out some offsets, this is what we get:</p>
 
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>urichh@toaster:~/Desktop/challs-dropbox/justCTF2025-pwn-shellcode_printer<span class="nv">$ </span>./vuln_patched
 Enter a format string: %1<span class="nv">$p</span>
@@ -317,9 +323,9 @@ Enter a format string:
 urichh@toaster:~/Desktop/challs-dropbox/justCTF2025-pwn-shellcode_printer<span class="nv">$ </span>
 </code></pre></div></div>
 
-<p>As we can see, offset 1 and 6 give lib-c-pointer-looking addresses, while the rest are just garbage. Trying offset 1 with a single return instructions (<code class="language-plaintext highlighter-rouge">%195c%1$hn</code>) gives us a SEGFAULT, so thats probbably not the pointer to our RWX memory page. Offset 6, however, successfuly executes, so we can assume it’s the correct pointer. Note that due to <a href="https://en.wikipedia.org/wiki/Address_space_layout_randomization">ASLR</a>, the values are randomised for each run.</p>
+<p>As we can see, offset 1 and 6 give lib-c-pointer-looking addresses, while the rest are just garbage. Trying offset 1 with a single return instructions (<code class="language-plaintext highlighter-rouge">%195c%1$hn</code>) gives us a SEGFAULT, so thats probabbly not the pointer to our RWX memory page. Offset 6, however, successfuly executes, so we can assume it’s the correct pointer. Note that due to <a href="https://en.wikipedia.org/wiki/Address_space_layout_randomization">ASLR</a>, the values are randomised for each run.</p>
 
-<p>This also tracks with the standard <a href="https://en.wikipedia.org/wiki/X86_calling_conventions#System_V_AMD64_ABI">x86 calling convention for amd64</a>, which states that the first 6 values on the stack are from registers, so in our case <code class="language-plaintext highlighter-rouge">0x7ffd932e3a30</code> was probbably RDI, which makes sense.</p>
+<p>This also tracks with the standard <a href="https://en.wikipedia.org/wiki/X86_calling_conventions#System_V_AMD64_ABI">x86 calling convention for amd64</a>, which states that the first 6 values on the stack are from registers, so in our case <code class="language-plaintext highlighter-rouge">0x7ffd932e3a30</code> was probabbly RDI, which makes sense.</p>
 
 <p><img src="/writeups//assets/images/amd64_calling_convention.png" alt="x86 calling convention for amd64" /></p>
 
@@ -412,7 +418,7 @@ just<span class="o">{</span>fake_flag<span class="o">}</span>
 </code></pre></div></div>
 
 <h2 id="conclusion">Conclusion</h2>
-<p>In conclusion, this was a pretty simple format string vulnerability challange, and this writeup could have been a lot shorter, I just wanted to take my time with it and go into more detail :)</p>
+<p>In conclusion, this was a pretty simple format string vulnerability challenge, and this writeup could have been a lot shorter, I just wanted to take my time with it and go into more detail :)</p>
 
     </div>
 </article>
@@ -420,20 +426,67 @@ just<span class="o">{</span>fake_flag<span class="o">}</span>
 <a href="/writeups/" style="display: inline-block; margin-top: 3rem;">back</a>
 
         
-          <button title="Toggle Theme" class="theme-toggle">
-  <svg viewBox="0 0 32 32" width="24" height="24" fill="currentcolor">
-    <circle cx="16" cy="16" r="14" fill="none" stroke="currentcolor" stroke-width="4"></circle>
-    <path d="
-             M 16 0
-             A 16 16 0 0 0 16 32
-             z">
-    </path>
+          <button aria-label="Toggle dark mode" aria-pressed="false" class="theme-toggle">
+  <svg class="icon-sun" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <circle cx="12" cy="12" r="5"></circle>
+    <line x1="12" y1="1" x2="12" y2="3"></line>
+    <line x1="12" y1="21" x2="12" y2="23"></line>
+    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+    <line x1="1" y1="12" x2="3" y2="12"></line>
+    <line x1="21" y1="12" x2="23" y2="12"></line>
+    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+  </svg>
+  <svg class="icon-moon" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
   </svg>
 </button>
 
         
-        <div class="credits">Theme&nbsp; <a href="https://github.com/abhinavs/moonwalk" target="_blank" rel="noreferrer">Moonwalk</a>
+        <div class="credits">Theme&nbsp; <a href="https://github.com/abhinavs/moonwalk" target="_blank" rel="noopener noreferrer">Moonwalk</a>
         </div>
       </div>
-    </main></body>
+    </main><script>
+  document.addEventListener("DOMContentLoaded", function () {
+    var defined_alerts = {
+      NOTE:      { icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16"><path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"></path></svg>', label: 'Note' },
+      TIP:       { icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16"><path d="M8 1.5c-2.363 0-4 1.69-4 3.75 0 .984.424 1.625.984 2.304l.214.253c.223.264.47.556.673.848.284.411.537.896.621 1.49a.75.75 0 0 1-1.484.211c-.04-.282-.163-.547-.37-.847a8.456 8.456 0 0 0-.542-.68c-.084-.1-.173-.205-.268-.32C3.201 7.75 2.5 6.766 2.5 5.25 2.5 2.31 4.863 0 8 0s5.5 2.31 5.5 5.25c0 1.516-.701 2.5-1.328 3.259-.095.115-.184.22-.268.319-.207.245-.383.453-.541.681-.208.3-.33.565-.37.847a.751.751 0 0 1-1.485-.212c.084-.593.337-1.078.621-1.489.203-.292.45-.584.673-.848.075-.088.147-.173.213-.253.561-.679.985-1.32.985-2.304 0-2.06-1.637-3.75-4-3.75ZM5.75 12h4.5a.75.75 0 0 1 0 1.5h-4.5a.75.75 0 0 1 0-1.5ZM6 15.25a.75.75 0 0 1 .75-.75h2.5a.75.75 0 0 1 0 1.5h-2.5a.75.75 0 0 1-.75-.75Z"></path></svg>', label: 'Tip' },
+      IMPORTANT: { icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16"><path d="M0 1.75C0 .784.784 0 1.75 0h12.5C15.216 0 16 .784 16 1.75v9.5A1.75 1.75 0 0 1 14.25 13H8.06l-2.573 2.573A1.458 1.458 0 0 1 3 14.543V13H1.75A1.75 1.75 0 0 1 0 11.25Zm1.75-.25a.25.25 0 0 0-.25.25v9.5c0 .138.112.25.25.25h2a.75.75 0 0 1 .75.75v2.19l2.72-2.72a.749.749 0 0 1 .53-.22h6.5a.25.25 0 0 0 .25-.25v-9.5a.25.25 0 0 0-.25-.25Zm7 2.25v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0ZM9 9a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"></path></svg>', label: 'Important' },
+      WARNING:   { icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16"><path d="M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575Zm1.763.707a.25.25 0 0 0-.44 0L1.698 13.132a.25.25 0 0 0 .22.368h12.164a.25.25 0 0 0 .22-.368Zm.53 3.996v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0ZM9 11a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"></path></svg>', label: 'Warning' },
+      CAUTION:   { icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16"><path d="M4.47.22A.749.749 0 0 1 5 0h6c.199 0 .389.079.53.22l4.25 4.25c.141.14.22.331.22.53v6a.749.749 0 0 1-.22.53l-4.25 4.25A.749.749 0 0 1 11 16H5a.749.749 0 0 1-.53-.22L.22 11.53A.749.749 0 0 1 0 11V5c0-.199.079-.389.22-.53Zm.84 1.28L1.5 5.31v5.38l3.81 3.81h5.38l3.81-3.81V5.31L10.69 1.5ZM8 4a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 8 4Zm0 8a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"></path></svg>', label: 'Caution' }
+    };
+
+    var blockquotes = document.querySelectorAll("blockquote");
+    for (var i = 0; i < blockquotes.length; i++) {
+      var bq = blockquotes[i];
+      var firstP = bq.querySelector("p:first-child");
+      if (!firstP) continue;
+
+      var text = firstP.innerHTML;
+      var match = text.match(/^\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*(<br\s*\/?>)?/);
+      if (!match) continue;
+
+      var type = match[1];
+      var alert = defined_alerts[type];
+
+      // Remove the marker from the paragraph text
+      firstP.innerHTML = text.replace(match[0], "").trim();
+
+      // If the paragraph is now empty, remove it
+      if (!firstP.innerHTML) {
+        firstP.remove();
+      }
+
+      // Build the alert title
+      var title = document.createElement("p");
+      title.className = "markdown-alert-title";
+      title.innerHTML = alert.icon + " " + alert.label;
+      bq.insertBefore(title, bq.firstChild);
+
+      bq.classList.add("markdown-alert", "markdown-alert-" + type.toLowerCase());
+    }
+  });
+</script>
+</body>
 </html>

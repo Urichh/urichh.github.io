@@ -20,5 +20,6 @@ paginate_path: "/page:num"
 plugins:
   - jekyll-paginate
   - jekyll-feed
+  - jekyll-remote-theme
   - jekyll-seo-tag
   - jekyll-sitemap
