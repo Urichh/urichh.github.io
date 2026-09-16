@@ -1,7 +1,7 @@
 ---
 title: justCTF - Shellcode printer
 date: '2026-02-08T00:00:00+01:00'
-url: http://localhost:4000/justCTF-shellcode-printer/
+url: https://www.urbansite.si/justCTF-shellcode-printer/
 summary: For my first real writeup on here, i’ve decided to document a pretty simple
   pwn challenge I solved a while ago at justCTF2025.
 tags:
