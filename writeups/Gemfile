@@ -1,3 +1,15 @@
 source "https://rubygems.org"
 
-gem "github-pages", group: :jekyll_plugins
+gem "jekyll", "~> 4.4.1"
+gem "webrick", "~> 1.8"
+
+group :jekyll_plugins do
+  gem "jekyll-feed", "~> 0.17"
+  gem "jekyll-markdown-output", "~> 0.1"
+  gem "jekyll-llms-output", "~> 0.1"
+  gem "jekyll-paginate", "~> 1.0"
+  gem "jekyll-remote-theme", "~> 0.4.3"
+  gem "jekyll-seo-tag", "~> 2.8"
+  gem "jekyll-soopr-seo-tag", "~> 2.7.3"
+  gem "jekyll-sitemap", "~> 1.4"
+end

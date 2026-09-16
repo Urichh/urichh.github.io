@@ -1,0 +1,8 @@
+# Writeups @ urbansite.si
+
+> CTF writeups
+
+## Posts
+
+- [justCTF - Shellcode printer](http://localhost:4000/justCTF-shellcode-printer/): For my first real writeup on here, i’ve decided to document a pretty simple pwn challenge I solved a while ago at justCTF2025.
+- [init writeup](http://localhost:4000/init-writeup/): Just a sample post for testing :)

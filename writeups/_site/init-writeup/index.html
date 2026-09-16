@@ -10,8 +10,8 @@
     
   </title>
 
-  <!-- Begin Jekyll SEO tag v2.8.0 -->
-<meta name="generator" content="Jekyll v3.10.0" />
+  <!-- Begin Jekyll SEO tag v2.7.3 -->
+<meta name="generator" content="Jekyll v4.4.1" />
 <meta property="og:title" content="init writeup" />
 <meta property="og:locale" content="en_US" />
 <meta name="description" content="Just a sample post for testing :)" />
@@ -24,24 +24,26 @@
 <meta name="twitter:card" content="summary" />
 <meta property="twitter:title" content="init writeup" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2026-01-24T00:00:00+01:00","datePublished":"2026-01-24T00:00:00+01:00","description":"Just a sample post for testing :)","headline":"init writeup","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/writeups/init-writeup/"},"url":"http://localhost:4000/writeups/init-writeup/"}</script>
+{"headline":"init writeup","dateModified":"2026-01-24T00:00:00+01:00","datePublished":"2026-01-24T00:00:00+01:00","url":"http://localhost:4000/writeups/init-writeup/","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/writeups/init-writeup/"},"@type":"BlogPosting","description":"Just a sample post for testing :)","@context":"https://schema.org"}</script>
 <!-- End Jekyll SEO tag -->
 
   <link type="application/atom+xml" rel="alternate" href="http://localhost:4000/writeups/feed.xml" title="Writeups @ urbansite.si" />
 
   <!-- Favicon -->
-  <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/favicon/apple-touch-icon.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon/favicon-16x16.png">
-  <link rel="manifest" href="/assets/images/favicon/site.webmanifest">
-  <link rel="mask-icon" href="/assets/images/favicon/safari-pinned-tab.svg" color="#5bbad5">
-  <link rel="shortcut icon" href="/assets/images/favicon/favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180" href="/writeups/assets/images/favicon/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/writeups/assets/images/favicon/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/writeups/assets/images/favicon/favicon-16x16.png">
+  <link rel="manifest" href="/writeups/assets/images/favicon/site.webmanifest">
+  <link rel="mask-icon" href="/writeups/assets/images/favicon/safari-pinned-tab.svg" color="#5bbad5">
+  <link rel="shortcut icon" href="/writeups/assets/images/favicon/favicon.ico">
   <meta name="msapplication-TileColor" content="#00aba9">
-  <meta name="msapplication-config" content="/assets/images/favicon/browserconfig.xml">
+  <meta name="msapplication-config" content="/writeups/assets/images/favicon/browserconfig.xml">
   <meta name="theme-color" content="#ffffff">
   <!-- Favicon -->
 
-  <link rel="stylesheet" href="/writeups/assets/css/main.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/writeups/assets/css/main.css" />
   
     <script type="text/javascript">
   window.addEventListener('load', themeChange);
@@ -50,35 +52,39 @@
     document.documentElement.setAttribute('data-theme', currentTheme);
 
   function themeChange() {
-    let button = document.querySelector('.theme-toggle');
+    var button = document.querySelector('.theme-toggle');
+    if (!button) return;
+
+    function updateIcon(theme) {
+      button.setAttribute('aria-pressed', theme === 'dark' ? 'true' : 'false');
+      button.querySelector('.icon-sun').style.display = theme === 'dark' ? 'block' : 'none';
+      button.querySelector('.icon-moon').style.display = theme === 'dark' ? 'none' : 'block';
+    }
+
+    updateIcon(document.documentElement.getAttribute('data-theme'));
 
     button.addEventListener('click', function (e) {
-      let currentTheme = document.documentElement.getAttribute('data-theme');
-      if (currentTheme === 'dark') {
-        transition();
-        document.documentElement.setAttribute('data-theme', 'light');
-        localStorage.setItem('theme', 'light');
-      } else {
-        transition();
-        document.documentElement.setAttribute('data-theme', 'dark');
-        localStorage.setItem('theme', 'dark');
-      }
+      var currentTheme = document.documentElement.getAttribute('data-theme');
+      var next = currentTheme === 'dark' ? 'light' : 'dark';
+
+      transition();
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+      updateIcon(next);
     });
 
-    let transition = () => {
+    function transition() {
       document.documentElement.classList.add('transition');
-      window.setTimeout(() => {
+      window.setTimeout(function () {
         document.documentElement.classList.remove('transition');
       }, 1000);
     }
   }
 </script>
 
-
   
 </head>
-<body>
-    <main class="page-content" aria-label="Content">
+<body><main class="page-content" aria-label="Content">
       <div class="w">
         <a href="/writeups/" style="display: inline-block; margin-bottom: 2rem;">back</a>
 
@@ -105,20 +111,67 @@
 <a href="/writeups/" style="display: inline-block; margin-top: 3rem;">back</a>
 
         
-          <button title="Toggle Theme" class="theme-toggle">
-  <svg viewBox="0 0 32 32" width="24" height="24" fill="currentcolor">
-    <circle cx="16" cy="16" r="14" fill="none" stroke="currentcolor" stroke-width="4"></circle>
-    <path d="
-             M 16 0
-             A 16 16 0 0 0 16 32
-             z">
-    </path>
+          <button aria-label="Toggle dark mode" aria-pressed="false" class="theme-toggle">
+  <svg class="icon-sun" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <circle cx="12" cy="12" r="5"></circle>
+    <line x1="12" y1="1" x2="12" y2="3"></line>
+    <line x1="12" y1="21" x2="12" y2="23"></line>
+    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+    <line x1="1" y1="12" x2="3" y2="12"></line>
+    <line x1="21" y1="12" x2="23" y2="12"></line>
+    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+  </svg>
+  <svg class="icon-moon" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
   </svg>
 </button>
 
         
-        <div class="credits">Theme&nbsp; <a href="https://github.com/abhinavs/moonwalk" target="_blank" rel="noreferrer">Moonwalk</a>
+        <div class="credits">Theme&nbsp; <a href="https://github.com/abhinavs/moonwalk" target="_blank" rel="noopener noreferrer">Moonwalk</a>
         </div>
       </div>
-    </main></body>
+    </main><script>
+  document.addEventListener("DOMContentLoaded", function () {
+    var defined_alerts = {
+      NOTE:      { icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16"><path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"></path></svg>', label: 'Note' },
+      TIP:       { icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16"><path d="M8 1.5c-2.363 0-4 1.69-4 3.75 0 .984.424 1.625.984 2.304l.214.253c.223.264.47.556.673.848.284.411.537.896.621 1.49a.75.75 0 0 1-1.484.211c-.04-.282-.163-.547-.37-.847a8.456 8.456 0 0 0-.542-.68c-.084-.1-.173-.205-.268-.32C3.201 7.75 2.5 6.766 2.5 5.25 2.5 2.31 4.863 0 8 0s5.5 2.31 5.5 5.25c0 1.516-.701 2.5-1.328 3.259-.095.115-.184.22-.268.319-.207.245-.383.453-.541.681-.208.3-.33.565-.37.847a.751.751 0 0 1-1.485-.212c.084-.593.337-1.078.621-1.489.203-.292.45-.584.673-.848.075-.088.147-.173.213-.253.561-.679.985-1.32.985-2.304 0-2.06-1.637-3.75-4-3.75ZM5.75 12h4.5a.75.75 0 0 1 0 1.5h-4.5a.75.75 0 0 1 0-1.5ZM6 15.25a.75.75 0 0 1 .75-.75h2.5a.75.75 0 0 1 0 1.5h-2.5a.75.75 0 0 1-.75-.75Z"></path></svg>', label: 'Tip' },
+      IMPORTANT: { icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16"><path d="M0 1.75C0 .784.784 0 1.75 0h12.5C15.216 0 16 .784 16 1.75v9.5A1.75 1.75 0 0 1 14.25 13H8.06l-2.573 2.573A1.458 1.458 0 0 1 3 14.543V13H1.75A1.75 1.75 0 0 1 0 11.25Zm1.75-.25a.25.25 0 0 0-.25.25v9.5c0 .138.112.25.25.25h2a.75.75 0 0 1 .75.75v2.19l2.72-2.72a.749.749 0 0 1 .53-.22h6.5a.25.25 0 0 0 .25-.25v-9.5a.25.25 0 0 0-.25-.25Zm7 2.25v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0ZM9 9a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"></path></svg>', label: 'Important' },
+      WARNING:   { icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16"><path d="M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575Zm1.763.707a.25.25 0 0 0-.44 0L1.698 13.132a.25.25 0 0 0 .22.368h12.164a.25.25 0 0 0 .22-.368Zm.53 3.996v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0ZM9 11a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"></path></svg>', label: 'Warning' },
+      CAUTION:   { icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16"><path d="M4.47.22A.749.749 0 0 1 5 0h6c.199 0 .389.079.53.22l4.25 4.25c.141.14.22.331.22.53v6a.749.749 0 0 1-.22.53l-4.25 4.25A.749.749 0 0 1 11 16H5a.749.749 0 0 1-.53-.22L.22 11.53A.749.749 0 0 1 0 11V5c0-.199.079-.389.22-.53Zm.84 1.28L1.5 5.31v5.38l3.81 3.81h5.38l3.81-3.81V5.31L10.69 1.5ZM8 4a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 8 4Zm0 8a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"></path></svg>', label: 'Caution' }
+    };
+
+    var blockquotes = document.querySelectorAll("blockquote");
+    for (var i = 0; i < blockquotes.length; i++) {
+      var bq = blockquotes[i];
+      var firstP = bq.querySelector("p:first-child");
+      if (!firstP) continue;
+
+      var text = firstP.innerHTML;
+      var match = text.match(/^\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*(<br\s*\/?>)?/);
+      if (!match) continue;
+
+      var type = match[1];
+      var alert = defined_alerts[type];
+
+      // Remove the marker from the paragraph text
+      firstP.innerHTML = text.replace(match[0], "").trim();
+
+      // If the paragraph is now empty, remove it
+      if (!firstP.innerHTML) {
+        firstP.remove();
+      }
+
+      // Build the alert title
+      var title = document.createElement("p");
+      title.className = "markdown-alert-title";
+      title.innerHTML = alert.icon + " " + alert.label;
+      bq.insertBefore(title, bq.firstChild);
+
+      bq.classList.add("markdown-alert", "markdown-alert-" + type.toLowerCase());
+    }
+  });
+</script>
+</body>
 </html>
