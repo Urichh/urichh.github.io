@@ -1,52 +1,29 @@
-title: "blog @ urbansite.si"
-author:
-  name: "Urban"
-  avatar: "/assets/images/avatar_dark_bg.png"
-  bio: "I do fun stuff sometimes :)"
-  location: "Slovenia"
-  email: "urban@urbansite.si"
-  links:
-    - label: "GitHub"
-      icon: "fab fa-fw fa-github"
-      url: "https://github.com/Urichh"
-    - label: "Website"
-      icon: "fas fa-fw fa-link"
-      url: "https://www.urbansite.si"
-
-repository: "urichh/urichh.github.io"
-
-remote_theme: mmistakes/minimal-mistakes@4.27.3
-
-minimal_mistakes_skin: "dark"
+title: "Blog @ urbansite.si"
+description: "Personal blog"
 
 url: "https://www.urbansite.si"
-baseurl: "/blog"
+baseurl: "/blog/"
 
-#silence errors from sass when using the minimal-mistakes theme
-sass:
-  quiet_deps: true
+remote_theme: abhinavs/moonwalk
+theme_config:
+  appearance: dark
+  appearance_toggle: true
+  date_format: "%B %d, %Y"
 
-#sidebar
-defaults:
-  - scope:
-      path: ""
-      type: posts
-    values:
-      layout: single
-      author_profile: true
-      read_time: true
-      comments: false
-      share: false
-      related: false
-      show_date: true
+permalink: /:year/:month/:day/:title/
+
+custom_css:
+  - /assets/css/terminal.css
 
 plugins:
-  - jekyll-remote-theme
   - jekyll-paginate
-  - jekyll-sitemap
-  - jekyll-gist
   - jekyll-feed
-  - jekyll-include-cache
+  - jekyll-markdown-output
+  - jekyll-llms-output
+  - jekyll-remote-theme
+  - jekyll-seo-tag
+  - jekyll-soopr-seo-tag
+  - jekyll-sitemap
 
 paginate: 5
-paginate_path: /page:num/
+paginate_path: "/page:num"

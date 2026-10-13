@@ -1,28 +1,19 @@
 ---
 layout: home
+title: "Blog"
+subtitle: "Personal blog"
 ---
 
-<script>
-//add navigation links to the main site navigation bar. Looks retarded, hope it holds up.
-document.addEventListener('DOMContentLoaded', () => {
-    const nav = document.querySelector('#site-nav .visible-links');
-    if (!nav) return;
+<h1>{{ page.title }}</h1>
 
-    const links = [
-        { text: 'Home', href: 'https://www.urbansite.si' },
-        { text: 'Blog', href: 'https://www.urbansite.si/blog' },
-        { text: 'Writeups', href: 'https://www.urbansite.si/writeups' },
-        { text: 'Photos', href: 'https://www.urbansite.si/photos' },
-    ];
+<p>You can check out some of by recent blog post here.</p>
 
-    links.forEach(link => {
-        const li = document.createElement('li');
-        const a = document.createElement('a');
-        a.href = link.href;
-        a.textContent = link.text;
-        li.appendChild(a);
-        nav.appendChild(li);
-    });
-});
-//tu mi deluje ris sasavu sam jebiga
-</script>
+<h2>Recent posts</h2>
+<ul>
+	{%- for post in site.posts -%}
+	<li>
+		<a href="{{ post.url | relative_url }}">{{ post.title }}</a>
+		<span style="color: #888">— {{ post.date | date: "%B %d, %Y" }}</span>
+	</li>
+	{%- endfor -%}
+</ul>
