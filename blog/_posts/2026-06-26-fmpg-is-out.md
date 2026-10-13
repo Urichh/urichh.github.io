@@ -76,7 +76,7 @@ As you can see, this current functionality is a little useless, but It's here as
 
 The script `previewAnalyzer.py` is built around a simple idea: each resource in the Factorio preview image has a known exact color, and the analyzer looks for those colors pixel by pixel. From there, the image is loaded and converted into RGB so the color matching logic works correctly. The core mask-building step just keeps only the pixels that exactly match a target resource color.
 
-```
+```python
 def build_color_mask(image_rgb: np.ndarray, target_rgb: tuple[int, int, int]) -> np.ndarray:
     target = np.array(target_rgb, dtype=np.uint8)
     return np.all(image_rgb == target, axis=2).astype(np.uint8)
@@ -95,7 +95,7 @@ Once the mask is clean enough, the script finds connected regions in it. Each co
 
 That data is then packaged into a "`Patch`" object, which stores the patch ID, resource type, pixel area, centroid, bounding box, and polygon:
 
-```
+```python
 Patch(
     id=f"{resource_name}-{patch_index}",
     type=resource_name,
@@ -160,7 +160,7 @@ Client just reads data from the generation parameters panel and others, and send
 ### 2. The API endpoint computes a deterministic cache key
 This key, called a "`dedupe_key`", is used to check whether this is a duplicate request so that it may skip generation steps and immediately return the result to the client. The dedupe key is constructed as following:
 
-```
+```javascript
 function buildDedupeKey(settings: unknown, seed: number, width: number, height: number) {
   const canonicalSettings = canonicalize(settings);
   const payload = {
@@ -190,7 +190,7 @@ As described above, the API checks if there is a row in the jobs db with an iden
 
 Since the workers do not consume jobs directly from the database, but instead from the previously described redis queue, the API also enqueues a small redis message containing the `job_id` and `dedupe_key`:
 
-```
+```javascript
 async function enqueueJob(jobId: string, dedupeKey: string) {
   const redisClient = await getRedisClient();
   const streamName = process.env.REDIS_STREAM_NAME ?? "fmpg:jobs";
@@ -208,7 +208,7 @@ async function enqueueJob(jobId: string, dedupeKey: string) {
 
 As mentioned previously, multiple workers run simultaneously to ensure parallel processing. If a worker is not currently executing a job, it is simply idling and periodically polling the redis queue (every second) for any available job. This is done as such:
 
-```
+```python
 while True:
     assert self.redis_client is not None
     messages = self.redis_client.xreadgroup(
@@ -276,7 +276,7 @@ When the user POSTs to this endpoint with parameters like seed, map dimensions, 
 
 The response returns the fully normalized Factorio map generation settings JSON in the body, with the dedupeKey provided in the `X-Dedupe-Key` response header as shown below:
 
-```
+```javascript
  //builds the raw map-generation settings json object from the current frontend form state.
  //The raw JSON is returned in the response body, while the dedupe_key (hash) is sent in 'X-Dedupe-Key' header.
 export async function POST(req: NextRequest) {
@@ -332,7 +332,7 @@ The worker runs as a containerized Python application defined by a Dockerfile. T
 
 Each worker also needs its own copy of the factorio binary in order to avoid file locking issues, which is implemented in the `entrypoint.sh` script. The base Factorio binary is baked into the image at `/app/factorio-base/`, and on startup, the entrypoint copies it to `/app/factorio` with a marker file to prevent re-initialization on restart. This per container isolation is essential because the Factorio binary generates temporary files during map preview rendering, and shared access would cause concurrency issues. The script then executes the Python worker.
 
-```
+```dockerfile
 FROM python:3.12-slim
 
 #don't write .pyc files and don't buffer output
